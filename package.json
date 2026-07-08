@@ -1,0 +1,30 @@
+{
+  "name": "ha-energy-flow-builder-card",
+  "version": "0.1.0",
+  "description": "A configurable Home Assistant Lovelace card for building custom animated energy flow diagrams.",
+  "type": "module",
+  "files": [
+    "dist",
+    "hacs.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "check": "tsc --noEmit",
+    "dev": "vite --host 127.0.0.1"
+  },
+  "keywords": [
+    "home-assistant",
+    "lovelace",
+    "custom-card",
+    "energy",
+    "flow"
+  ],
+  "author": "psiris22",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "vite": "^5.4.2"
+  }
+}
