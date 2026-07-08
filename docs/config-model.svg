@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">Energy Flow Builder configuration model</title>
+  <desc id="desc">Diagram explaining how background, nodes, lines, and Home Assistant entities form the card configuration.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#0f172a" flood-opacity=".12"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto">
+      <path d="M2 2 10 6 2 10z" fill="#0f766e"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="520" rx="30" fill="#f8fafc"/>
+
+  <g font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+    <g transform="translate(64 72)" filter="url(#shadow)">
+      <rect width="260" height="330" rx="22" fill="#ffffff"/>
+      <text x="28" y="48" fill="#0f172a" font-size="28" font-weight="800">Background</text>
+      <text x="28" y="88" fill="#475569" font-size="20">image oder color</text>
+      <text x="28" y="122" fill="#475569" font-size="20">viewBox</text>
+      <text x="28" y="156" fill="#475569" font-size="20">aspectRatio</text>
+      <rect x="28" y="196" width="204" height="90" rx="14" fill="#dff2ff" stroke="#bae6fd"/>
+      <path d="M54 254 102 222 150 254v34H54z" fill="#ffffff" stroke="#334155" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M47 258 102 218 157 258" fill="none" stroke="#334155" stroke-width="6" stroke-linecap="round"/>
+    </g>
+
+    <g transform="translate(470 72)" filter="url(#shadow)">
+      <rect width="260" height="330" rx="22" fill="#ffffff"/>
+      <text x="28" y="48" fill="#0f172a" font-size="28" font-weight="800">Nodes</text>
+      <text x="28" y="88" fill="#475569" font-size="20">x / y Koordinaten</text>
+      <text x="28" y="122" fill="#475569" font-size="20">name</text>
+      <text x="28" y="156" fill="#475569" font-size="20">entity</text>
+      <text x="28" y="190" fill="#475569" font-size="20">secondaryEntity</text>
+      <g transform="translate(38 228)">
+        <rect width="184" height="72" rx="14" fill="#f1f5f9" stroke="#cbd5e1"/>
+        <text x="16" y="31" fill="#64748b" font-size="16" font-weight="700">Solar</text>
+        <text x="16" y="57" fill="#0f172a" font-size="22" font-weight="800">5.2 kW</text>
+      </g>
+    </g>
+
+    <g transform="translate(876 72)" filter="url(#shadow)">
+      <rect width="260" height="330" rx="22" fill="#ffffff"/>
+      <text x="28" y="48" fill="#0f172a" font-size="28" font-weight="800">Lines</text>
+      <text x="28" y="88" fill="#475569" font-size="20">SVG path</text>
+      <text x="28" y="122" fill="#475569" font-size="20">entity</text>
+      <text x="28" y="156" fill="#475569" font-size="20">activeAbove</text>
+      <text x="28" y="190" fill="#475569" font-size="20">color / width</text>
+      <path d="M52 270 C100 216 164 322 210 254" fill="none" stroke="#bae6fd" stroke-width="19" stroke-linecap="round"/>
+      <path d="M52 270 C100 216 164 322 210 254" fill="none" stroke="#0ea5e9" stroke-width="8" stroke-dasharray="22 25" stroke-linecap="round"/>
+    </g>
+
+    <path d="M344 238 H442" fill="none" stroke="#0f766e" stroke-width="5" stroke-linecap="round" marker-end="url(#arrow)"/>
+    <path d="M750 238 H848" fill="none" stroke="#0f766e" stroke-width="5" stroke-linecap="round" marker-end="url(#arrow)"/>
+
+    <g transform="translate(382 420)">
+      <rect width="436" height="54" rx="27" fill="#ecfdf5" stroke="#99f6e4"/>
+      <text x="218" y="35" fill="#0f766e" text-anchor="middle" font-size="20" font-weight="800">Alles wird in YAML verdrahtet und live aus Home Assistant gelesen</text>
+    </g>
+  </g>
+</svg>
