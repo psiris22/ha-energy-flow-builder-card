@@ -1,1 +1,291 @@
-# ha-energy-flow-builder-card
+# Energy Flow Builder Card
+
+![Energy Flow Builder Card Vorschau](docs/energy-flow-builder-preview.svg)
+
+**Energy Flow Builder Card** ist eine frei konfigurierbare Lovelace Custom Card fuer Home Assistant. Du kannst damit eine eigene animierte Energiefluss-Ansicht bauen: mit eigenem Hintergrundbild, eigenen Koordinaten, eigenen Linien und deinen lokalen Home-Assistant-Entitaeten.
+
+Die Card ist bewusst unabhaengig von bestimmten Herstellern. Es ist egal, ob deine Werte von Sungrow, Fronius, Victron, Shelly, Tibber, Easee, go-e, Viessmann, MQTT oder Template-Sensoren kommen. Wenn Home Assistant eine Entity hat, kann die Card sie anzeigen.
+
+## Was Kann Die Card?
+
+- Solar, Haus, Batterie, Auto/Wallbox, Netz, Heizung oder beliebige eigene Anzeigen darstellen
+- jede Anzeige mit einer eigenen Home-Assistant-Entity verbinden
+- optional eine zweite Entity pro Anzeige zeigen, zum Beispiel Batterie-Leistung plus Batterie-SoC
+- eigene Hintergrundgrafik verwenden
+- Labels frei per `x`/`y` positionieren
+- Linien frei als SVG-Pfade definieren
+- Linien anhand von Entity-Werten aktivieren
+- Import/Export oder Laden/Entladen ueber positive und negative Werte abbilden
+- Farben, Linienbreite, Animation und Schwellenwerte anpassen
+
+## Grundidee
+
+![Konfigurationsmodell](docs/config-model.svg)
+
+Die Card besteht aus drei einfachen Bausteinen:
+
+| Baustein | Bedeutung |
+| --- | --- |
+| `background` | Hintergrundbild, Groesse und SVG-Koordinatensystem. |
+| `nodes` | Die Anzeigen, zum Beispiel Solar, Batterie, Auto oder Netz. |
+| `lines` | Die animierten Verbindungen zwischen den Anzeigen. |
+
+Du entscheidest selbst, welche Nodes es gibt und welche Entity dahinter steckt.
+
+## Installation
+
+### Manuell
+
+Repository klonen, bauen und die fertige Datei nach Home Assistant kopieren:
+
+```bash
+npm install
+npm run build
+```
+
+Die gebaute Datei liegt danach hier:
+
+```text
+dist/energy-flow-builder-card.js
+```
+
+Kopiere sie in dein Home-Assistant-Verzeichnis:
+
+```text
+config/www/energy-flow-builder-card.js
+```
+
+Dann in Home Assistant als Dashboard-Resource eintragen:
+
+```yaml
+resources:
+  - url: /local/energy-flow-builder-card.js
+    type: module
+```
+
+Danach kannst du die Card in Lovelace verwenden:
+
+```yaml
+type: custom:energy-flow-builder-card
+```
+
+### HACS
+
+HACS-Unterstuetzung ist vorbereitet, aber noch nicht final veroeffentlicht. Sobald Releases verfuegbar sind, kann dieses Repository als Custom Repository in HACS eingebunden werden.
+
+## Schnellstart
+
+Dieses Beispiel zeigt eine typische Haus-Energieansicht. Ersetze nur die Entity-IDs durch deine eigenen Sensoren.
+
+```yaml
+type: custom:energy-flow-builder-card
+title: Energiefluss
+background:
+  image: /local/energy/house.png
+  viewBox: "0 0 1073 1466"
+  aspectRatio: "1073 / 1466"
+defaults:
+  activeAbove: 25
+  lineWidth: 7
+  lineColor: "#16a6d9"
+  trackColor: "rgba(22, 166, 217, .26)"
+nodes:
+  solar:
+    x: 385
+    y: 330
+    name: Solar
+    entity: sensor.pv_power
+  house:
+    x: 760
+    y: 520
+    name: Haus
+    entity: sensor.house_power
+  battery:
+    x: 385
+    y: 1124
+    name: Batterie
+    entity: sensor.battery_soc
+    secondaryEntity: sensor.battery_power
+    unit: "%"
+    decimals: 0
+  wallbox:
+    x: 42
+    y: 1124
+    name: Auto
+    entity: sensor.wallbox_power
+  heat:
+    x: 760
+    y: 900
+    name: Heizung
+    entity: sensor.heat_pump_power
+  grid:
+    x: 760
+    y: 1248
+    name: Netz
+    entity: sensor.grid_power
+lines:
+  - id: solar_to_battery
+    path: "M600 500 V1100"
+    entity: sensor.pv_power
+  - id: battery_to_house
+    path: "M600 1100 H820 V675"
+    entity: sensor.house_power
+  - id: battery_to_wallbox
+    path: "M600 1100 H200"
+    entity: sensor.wallbox_power
+  - id: battery_to_heat
+    path: "M600 1100 H950 V1050"
+    entity: sensor.heat_pump_power
+  - id: grid
+    pathPositive: "M600 1100 V1300 H900"
+    pathNegative: "M900 1300 H600 V1100"
+    entity: sensor.grid_power
+```
+
+## Eigene Entitaeten Verbinden
+
+Die Entity-Namen im Beispiel sind nur Platzhalter. Du kannst beliebige lokale Home-Assistant-Entities verwenden:
+
+```yaml
+nodes:
+  solar:
+    name: PV Dach
+    entity: sensor.shelly_pv_power
+    x: 180
+    y: 120
+
+  grid:
+    name: Netz
+    entity: sensor.smart_meter_power
+    x: 720
+    y: 620
+```
+
+Wichtig ist nur: Der State der Entity sollte eine Zahl sein, wenn die Card daraus Aktivitaet, Richtung oder Geschwindigkeit berechnen soll.
+
+## Netzbezug Und Einspeisung
+
+Fuer bidirektionale Werte nutzt du `pathPositive` und `pathNegative`.
+
+```yaml
+lines:
+  - id: grid
+    entity: sensor.grid_power
+    pathPositive: "M600 1100 V1300 H900"
+    pathNegative: "M900 1300 H600 V1100"
+```
+
+Wenn dein Smart-Meter-Vorzeichen andersherum ist, setze:
+
+```yaml
+invert: true
+```
+
+## Koordinaten Verstehen
+
+Die Koordinaten beziehen sich auf die `viewBox`. Bei:
+
+```yaml
+background:
+  viewBox: "0 0 1073 1466"
+```
+
+liegt `x: 0, y: 0` oben links und `x: 1073, y: 1466` unten rechts. Ein Node bei:
+
+```yaml
+x: 385
+y: 330
+```
+
+wird also im oberen linken Bereich der Grafik angezeigt.
+
+SVG-Pfade nutzen dasselbe Koordinatensystem:
+
+```yaml
+path: "M600 500 V1100"
+```
+
+Das bedeutet: Start bei `x=600, y=500`, dann senkrecht bis `y=1100`.
+
+## Konfiguration
+
+### `background`
+
+| Option | Beschreibung |
+| --- | --- |
+| `image` | Optionales Hintergrundbild, zum Beispiel `/local/energy/house.png`. |
+| `color` | Optionaler CSS-Hintergrund, wenn kein Bild genutzt wird. |
+| `viewBox` | SVG-Koordinatensystem fuer Nodes und Linien. |
+| `aspectRatio` | Seitenverhaeltnis der Card, zum Beispiel `"1073 / 1466"`. |
+
+### `defaults`
+
+| Option | Beschreibung |
+| --- | --- |
+| `activeAbove` | Standard-Schwelle, ab der Linien animiert werden. |
+| `lineWidth` | Standardbreite der Linien. |
+| `lineColor` | Standardfarbe der aktiven Linie. |
+| `trackColor` | Farbe der ruhenden Hintergrundlinie. |
+| `pulseColor` | Farbe der animierten Punkte. |
+| `duration` | Standarddauer einer Animation in Sekunden. |
+| `labelWidth` | Standardbreite eines Labels. |
+| `labelHeight` | Standardhoehe eines Labels. |
+
+### `nodes`
+
+Nodes sind frei benannt. `solar`, `battery` oder `grid` sind keine Pflichtnamen.
+
+| Option | Beschreibung |
+| --- | --- |
+| `x`, `y` | Position im SVG-Koordinatensystem. |
+| `name` | Anzeigename. Wenn leer, wird der Friendly Name der Entity verwendet. |
+| `entity` | Primaere Home-Assistant-Entity. |
+| `secondaryEntity` | Optionale zweite Entity im Label. |
+| `unit` | Optionale Einheit, ueberschreibt die Entity-Einheit. |
+| `decimals` | Anzahl der Nachkommastellen. |
+| `activeAbove` | Eigene Aktivitaetsschwelle fuer diesen Node. |
+| `labelWidth`, `labelHeight` | Eigene Label-Groesse. |
+| `hide` | Node ausblenden. |
+
+### `lines`
+
+| Option | Beschreibung |
+| --- | --- |
+| `id` | Eindeutige ID der Linie. |
+| `path` | SVG-Pfad fuer eine einseitige Linie. |
+| `pathPositive` | SVG-Pfad fuer positive Entity-Werte. |
+| `pathNegative` | SVG-Pfad fuer negative Entity-Werte. |
+| `entity` | Entity, die Aktivitaet und Geschwindigkeit steuert. |
+| `value` | Fester Wert, falls keine Entity verwendet werden soll. |
+| `activeAbove` | Schwelle, ab der die Linie animiert wird. |
+| `invert` | Dreht die Vorzeichenlogik um. |
+| `width` | Linienbreite fuer diese Linie. |
+| `color` | Farbe fuer diese Linie. |
+| `trackColor` | Farbe der Hintergrundlinie. |
+| `pulseColor` | Farbe der animierten Punkte. |
+| `duration` | Animationsdauer in Sekunden. |
+| `hideWhenInactive` | Linie unterhalb der Schwelle ausblenden. |
+
+## Entwicklung
+
+```bash
+npm install
+npm run check
+npm run build
+```
+
+Der Produktionsbuild erzeugt:
+
+```text
+dist/energy-flow-builder-card.js
+```
+
+## Projektziel
+
+Dieses Projekt soll ein generischer Energiefluss-Baukasten fuer Home Assistant werden. Es soll keine feste Logik fuer bestimmte Hersteller enthalten. Die Card liest nur Home-Assistant-Entities und rendert daraus eine konfigurierbare Ansicht.
+
+## Lizenz
+
+MIT
+
+Dieses Projekt ist von Energiefluss-Visualisierungen im Home-Assistant-Oekosystem inspiriert, enthaelt aber keinen Code von Power Flow Card Plus.
