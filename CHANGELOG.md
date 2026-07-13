@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.3
+
+- Added mouse-editable line points with drag-and-drop and double-click insertion.
+
 ## 0.2.2
 
 - Added drag-and-drop positioning for nodes directly in the coordinate preview.

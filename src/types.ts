@@ -56,6 +56,7 @@ export interface EnergyFlowNodeConfig {
 
 export interface EnergyFlowLineConfig {
   id: string;
+  points?: Array<{ x: number; y: number }>;
   path?: string;
   pathPositive?: string;
   pathNegative?: string;

@@ -15,13 +15,25 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
     nodes[detail.id] = { ...nodes[detail.id], x: detail.x!, y: detail.y! };
     this.commit({ ...this.config(), nodes });
   };
+  private readonly _onLinePointMoved = (event: Event) => {
+    const detail = (event as CustomEvent<{ id?: string; index?: number; x?: number; y?: number }>).detail;
+    this.updateLinePoint(detail, false);
+  };
+  private readonly _onLinePointAdded = (event: Event) => {
+    const detail = (event as CustomEvent<{ id?: string; index?: number; x?: number; y?: number }>).detail;
+    this.updateLinePoint(detail, true);
+  };
 
   connectedCallback(): void {
     window.addEventListener("energy-flow-builder-node-moved", this._onNodeMoved);
+    window.addEventListener("energy-flow-builder-line-point-moved", this._onLinePointMoved);
+    window.addEventListener("energy-flow-builder-line-point-added", this._onLinePointAdded);
   }
 
   disconnectedCallback(): void {
     window.removeEventListener("energy-flow-builder-node-moved", this._onNodeMoved);
+    window.removeEventListener("energy-flow-builder-line-point-moved", this._onLinePointMoved);
+    window.removeEventListener("energy-flow-builder-line-point-added", this._onLinePointAdded);
   }
 
   setConfig(config: EnergyFlowBuilderCardConfig): void {
@@ -91,6 +103,7 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
         <div class="row"><label>ID <input data-line="${index}" data-key="id" value="${attr(line.id)}"></label><label>Breite <input type="number" data-line="${index}" data-key="width" value="${line.width ?? ""}" placeholder="Standard"></label></div>
         <label>Steuernde Entity ${this.entitySelect("line", String(index), "entity", line.entity)}</label>
         <label>SVG-Pfad <input data-line="${index}" data-key="path" value="${attr(line.path ?? "")}" placeholder="M600 500 V1100"></label>
+        ${line.points?.length ? `<div class="file-note">${line.points.length} bearbeitbare Punkte: Punkte ziehen, Doppelklick auf die Linie für einen weiteren Punkt.</div>` : `<button class="secondary" type="button" data-action="make-points" data-index="${index}">Pfad mit Maus bearbeiten</button>`}
         <div class="row"><label>Farbe <input data-line="${index}" data-key="color" value="${attr(line.color ?? "")}" placeholder="#16a6d9"></label><label>Schwelle <input type="number" data-line="${index}" data-key="activeAbove" value="${line.activeAbove ?? ""}" placeholder="Standard"></label></div>
         <label class="check"><input type="checkbox" data-line="${index}" data-key="invert" ${line.invert ? "checked" : ""}> Vorzeichen umdrehen</label>
         <button class="danger" type="button" data-action="remove-line" data-index="${index}">Linie entfernen</button>
@@ -130,6 +143,12 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
     }
     if (button.dataset.action === "add-line") this.commit({ ...config, lines: [...(config.lines ?? []), { id: `linie_${(config.lines?.length ?? 0) + 1}`, path: "M100 100 H300" }] });
     if (button.dataset.action === "remove-line") this.commit({ ...config, lines: (config.lines ?? []).filter((_, index) => index !== Number(button.dataset.index)) });
+    if (button.dataset.action === "make-points") {
+      const lines = [...(config.lines ?? [])];
+      const index = Number(button.dataset.index);
+      lines[index] = { ...lines[index], points: parsePathPoints(lines[index].path ?? "") };
+      this.commit({ ...config, lines });
+    }
     if (button.dataset.action === "clear-image") this.updatePath("background.image", "");
   }
 
@@ -173,6 +192,19 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
     this.commit({ ...config, lines });
   }
 
+  private updateLinePoint(detail: { id?: string; index?: number; x?: number; y?: number }, insert: boolean): void {
+    if (!detail.id || detail.index === undefined || !Number.isFinite(detail.x) || !Number.isFinite(detail.y)) return;
+    const config = this.config();
+    const lines = [...(config.lines ?? [])];
+    const lineIndex = lines.findIndex((line) => line.id === detail.id);
+    if (lineIndex < 0) return;
+    const points = [...(lines[lineIndex].points ?? [])];
+    if (insert) points.splice(detail.index, 0, { x: detail.x!, y: detail.y! });
+    else points[detail.index] = { x: detail.x!, y: detail.y! };
+    lines[lineIndex] = { ...lines[lineIndex], points };
+    this.commit({ ...config, lines });
+  }
+
   private config(): EnergyFlowBuilderCardConfig { return this._config ?? { type: "custom:energy-flow-builder-card" }; }
   private commit(config: EnergyFlowBuilderCardConfig): void {
     this._config = config;
@@ -186,6 +218,21 @@ function numberValue(value: number | undefined): string { return value === undef
 function escapeHtml(value: string): string { return value.replace(/[&<>\"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '\"': "&quot;", "'": "&#39;" })[char] ?? char); }
 function attr(value: string): string { return escapeHtml(value); }
 function isDataImage(value?: string): boolean { return Boolean(value?.startsWith("data:image/")); }
+function parsePathPoints(path: string): Array<{ x: number; y: number }> {
+  const tokens = path.match(/[MLHV]|-?(?:\d*\.\d+|\d+)/g) ?? [];
+  const points: Array<{ x: number; y: number }> = [];
+  let index = 0;
+  let command = "";
+  while (index < tokens.length) {
+    if (/[MLHV]/.test(tokens[index])) command = tokens[index++];
+    const previous = points[points.length - 1] ?? { x: 0, y: 0 };
+    if ((command === "M" || command === "L") && index + 1 < tokens.length) points.push({ x: Number(tokens[index++]), y: Number(tokens[index++]) });
+    else if (command === "H" && index < tokens.length) points.push({ x: Number(tokens[index++]), y: previous.y });
+    else if (command === "V" && index < tokens.length) points.push({ x: previous.x, y: Number(tokens[index++]) });
+    else break;
+  }
+  return points;
+}
 
 const styles = `
   :host { display:block; color:var(--primary-text-color); }

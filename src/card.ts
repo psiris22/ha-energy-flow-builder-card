@@ -27,6 +27,7 @@ class EnergyFlowBuilderCard extends HTMLElement {
   private _hass?: HomeAssistant;
   private readonly _root = this.attachShadow({ mode: "open" });
   private _drag?: { id: string; node: SVGGElement; offsetX: number; offsetY: number; moved: boolean };
+  private _lineDrag?: { id: string; index: number; handle: SVGCircleElement; group: SVGGElement; points: Array<{ x: number; y: number }> };
 
   setConfig(config: EnergyFlowBuilderCardConfig): void {
     if (!config || config.type !== `custom:${CARD_TAG}`) {
@@ -90,7 +91,7 @@ class EnergyFlowBuilderCard extends HTMLElement {
                 <feMerge><feMergeNode in="glow"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
               </filter>
             </defs>
-            ${lines.map((line) => this.renderLine(line)).join("")}
+            ${lines.map((line) => this.renderLine(line, Boolean(config.background?.showCoordinates))).join("")}
             ${config.background?.showCoordinates ? this.renderCoordinateGrid(viewBox) : ""}
             ${nodes.map(([id, node]) => this.renderNode(id, node, Boolean(config.background?.showCoordinates))).join("")}
           </svg>
@@ -99,6 +100,7 @@ class EnergyFlowBuilderCard extends HTMLElement {
     `;
 
     this.bindNodeActions();
+    this.bindLineActions();
   }
 
   private stageStyle(config: EnergyFlowBuilderCardConfig): string {
@@ -107,7 +109,7 @@ class EnergyFlowBuilderCard extends HTMLElement {
     return `${background}${aspectRatio}`;
   }
 
-  private renderLine(line: EnergyFlowLineConfig): string {
+  private renderLine(line: EnergyFlowLineConfig, showHandles: boolean): string {
     const defaults = this.defaults();
     const rawValue = line.value ?? this.entityNumber(line.entity);
     const value = line.invert ? -rawValue : rawValue;
@@ -116,7 +118,7 @@ class EnergyFlowBuilderCard extends HTMLElement {
     const active = absValue > threshold;
     if (!active && line.hideWhenInactive) return "";
 
-    const path = value < 0 && line.pathNegative ? line.pathNegative : value >= 0 && line.pathPositive ? line.pathPositive : line.path;
+    const path = this.linePath(line, value);
     if (!path) return "";
 
     const id = safeId(line.id);
@@ -129,9 +131,9 @@ class EnergyFlowBuilderCard extends HTMLElement {
     const opacity = active ? "1" : ".38";
 
     return `
-      <g class="flow-line ${active ? "is-active" : "is-idle"}" style="--line-width:${width};--duration:${duration}s;--direction:${direction};--flow-opacity:${opacity};--line-color:${escapeAttr(color)};--track-color:${escapeAttr(trackColor)};--pulse-color:${escapeAttr(pulseColor)}">
-        <path id="${id}" class="flow-track" d="${escapeAttr(path)}"></path>
-        <path class="flow-main" d="${escapeAttr(path)}"></path>
+      <g class="flow-line ${active ? "is-active" : "is-idle"}" data-line-id="${escapeAttr(line.id)}" style="--line-width:${width};--duration:${duration}s;--direction:${direction};--flow-opacity:${opacity};--line-color:${escapeAttr(color)};--track-color:${escapeAttr(trackColor)};--pulse-color:${escapeAttr(pulseColor)}">
+        <path id="${id}" data-flow-path class="flow-track" d="${escapeAttr(path)}"></path>
+        <path data-flow-path class="flow-main" d="${escapeAttr(path)}"></path>
         ${active ? `
           <circle class="flow-pulse primary" r="${Math.max(5, width * 1.3)}">
             <animateMotion dur="${duration}s" repeatCount="indefinite" calcMode="paced">
@@ -144,8 +146,14 @@ class EnergyFlowBuilderCard extends HTMLElement {
             </animateMotion>
           </circle>
         ` : ""}
+        ${showHandles ? (line.points ?? []).map((point, index) => `<circle class="line-handle" data-point-index="${index}" cx="${point.x}" cy="${point.y}" r="13"></circle>`).join("") : ""}
       </g>
     `;
+  }
+
+  private linePath(line: EnergyFlowLineConfig, value = 0): string | undefined {
+    if (line.points && line.points.length > 1) return pointsToPath(line.points);
+    return value < 0 && line.pathNegative ? line.pathNegative : value >= 0 && line.pathPositive ? line.pathPositive : line.path;
   }
 
   private renderCoordinateGrid(viewBox: string): string {
@@ -224,13 +232,58 @@ class EnergyFlowBuilderCard extends HTMLElement {
     if (coordinates) coordinates.textContent = `x ${x} · y ${y}`;
   }
 
+  private bindLineActions(): void {
+    const svg = this._root.querySelector<SVGSVGElement>(".flow-svg");
+    if (!svg || !this._config?.background?.showCoordinates) return;
+    this._root.querySelectorAll<SVGGElement>(".flow-line[data-line-id]").forEach((group) => {
+      const id = group.dataset.lineId ?? "";
+      group.querySelectorAll<SVGCircleElement>(".line-handle").forEach((handle) => {
+        handle.addEventListener("pointerdown", (event) => {
+          const line = this._config?.lines?.find((candidate) => candidate.id === id);
+          const index = Number(handle.dataset.pointIndex);
+          if (!line?.points?.[index]) return;
+          this._lineDrag = { id, index, handle, group, points: line.points.map((point) => ({ ...point })) };
+          handle.setPointerCapture(event.pointerId);
+          event.preventDefault();
+          event.stopPropagation();
+        });
+        handle.addEventListener("pointermove", (event) => this.dragLinePoint(svg, event));
+        handle.addEventListener("pointerup", () => {
+          const drag = this._lineDrag;
+          if (!drag || drag.handle !== handle) return;
+          this._lineDrag = undefined;
+          const point = drag.points[drag.index];
+          window.dispatchEvent(new CustomEvent("energy-flow-builder-line-point-moved", { detail: { id: drag.id, index: drag.index, x: point.x, y: point.y } }));
+        });
+      });
+      group.addEventListener("dblclick", (event) => {
+        const line = this._config?.lines?.find((candidate) => candidate.id === id);
+        if (!line?.points || line.points.length < 2) return;
+        const point = this.svgPoint(svg, event);
+        window.dispatchEvent(new CustomEvent("energy-flow-builder-line-point-added", { detail: { id, index: nearestSegment(line.points, point), x: Math.round(point.x), y: Math.round(point.y) } }));
+        event.preventDefault();
+      });
+    });
+  }
+
+  private dragLinePoint(svg: SVGSVGElement, event: PointerEvent): void {
+    const drag = this._lineDrag;
+    if (!drag) return;
+    const point = this.svgPoint(svg, event);
+    drag.points[drag.index] = { x: Math.round(point.x), y: Math.round(point.y) };
+    drag.handle.setAttribute("cx", String(drag.points[drag.index].x));
+    drag.handle.setAttribute("cy", String(drag.points[drag.index].y));
+    const path = pointsToPath(drag.points);
+    drag.group.querySelectorAll<SVGPathElement>("[data-flow-path]").forEach((element) => element.setAttribute("d", path));
+  }
+
   private publishNodePosition(id: string, x: number, y: number): void {
     window.dispatchEvent(new CustomEvent("energy-flow-builder-node-moved", {
       detail: { id, x: Math.round(x), y: Math.round(y) }
     }));
   }
 
-  private svgPoint(svg: SVGSVGElement, event: PointerEvent): { x: number; y: number } {
+  private svgPoint(svg: SVGSVGElement, event: PointerEvent | MouseEvent): { x: number; y: number } {
     const [originX = 0, originY = 0, width = 1000, height = 1000] = (svg.getAttribute("viewBox") ?? DEFAULT_VIEW_BOX).split(/\s+/).map(Number);
     const bounds = svg.getBoundingClientRect();
     return {
@@ -393,6 +446,19 @@ const styles = `
     cursor: grabbing;
   }
 
+  .line-handle {
+    fill: #ffffff;
+    stroke: #16a6d9;
+    stroke-width: 5;
+    cursor: grab;
+    vector-effect: non-scaling-stroke;
+    touch-action: none;
+  }
+
+  .line-handle:active {
+    cursor: grabbing;
+  }
+
   .flow-node.is-idle {
     opacity: .78;
   }
@@ -426,6 +492,26 @@ function speedFromValue(value: number, fallback: number): number {
   if (value <= 0) return fallback;
   const clamped = Math.max(100, Math.min(value, 8000));
   return Number((6 - ((clamped - 100) / 7900) * 4.4).toFixed(2));
+}
+
+function pointsToPath(points: Array<{ x: number; y: number }>): string {
+  return points.map((point, index) => `${index ? "L" : "M"}${point.x} ${point.y}`).join(" ");
+}
+
+function nearestSegment(points: Array<{ x: number; y: number }>, point: { x: number; y: number }): number {
+  let closestIndex = 0;
+  let closestDistance = Number.POSITIVE_INFINITY;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const start = points[index];
+    const end = points[index + 1];
+    const lengthSquared = (end.x - start.x) ** 2 + (end.y - start.y) ** 2 || 1;
+    const t = Math.max(0, Math.min(1, ((point.x - start.x) * (end.x - start.x) + (point.y - start.y) * (end.y - start.y)) / lengthSquared));
+    const x = start.x + t * (end.x - start.x);
+    const y = start.y + t * (end.y - start.y);
+    const distance = (point.x - x) ** 2 + (point.y - y) ** 2;
+    if (distance < closestDistance) { closestDistance = distance; closestIndex = index; }
+  }
+  return closestIndex + 1;
 }
 
 function safeId(value: string): string {
