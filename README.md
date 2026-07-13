@@ -297,7 +297,7 @@ Der Produktionsbuild erzeugt:
 dist/ha-energy-flow-builder-card.js
 ```
 
-Ein Push startet die TypeScript- und HACS-Pruefung. Ein Git-Tag wie `v0.2.0` erstellt automatisch ein GitHub Release mit der fertigen JavaScript-Datei. Das ist der stabile Update-Kanal fuer HACS.
+Ein Push startet die TypeScript- und HACS-Pruefung. Jede neue Paketversion erstellt automatisch ein GitHub Release mit der fertigen JavaScript-Datei. HACS zeigt diese Releases beim Download und bei Updates als auswählbare Versionen an.
 
 ## Projektziel
 
