@@ -1,5 +1,5 @@
-const I = "energy-flow-builder-card-editor";
-class D extends HTMLElement {
+const H = "energy-flow-builder-card-editor";
+class R extends HTMLElement {
   constructor() {
     super(...arguments), this._entitySignature = "", this._openSections = /* @__PURE__ */ new Map(), this._history = [], this._future = [], this._root = this.attachShadow({ mode: "open" }), this._onNodeMoved = (t) => {
       const e = t.detail;
@@ -358,8 +358,8 @@ const O = `
   .actions { display:flex; gap:18px; align-items:center; }
   @media (max-width: 420px) { .row, .three { grid-template-columns:1fr; gap:0; } }
 `;
-customElements.define(I, D);
-const $ = "energy-flow-builder-card", j = "0 0 1000 1000", R = {
+customElements.define(H, R);
+const $ = "energy-flow-builder-card", j = "0 0 1000 1000", I = {
   activeAbove: 10,
   lineWidth: 7,
   lineColor: "#16a6d9",
@@ -371,18 +371,21 @@ const $ = "energy-flow-builder-card", j = "0 0 1000 1000", R = {
 };
 class V extends HTMLElement {
   constructor() {
-    super(...arguments), this._root = this.attachShadow({ mode: "open" });
+    super(...arguments), this._editMode = !1, this._root = this.attachShadow({ mode: "open" });
   }
   setConfig(t) {
     if (!t || t.type !== `custom:${$}`)
       throw new Error(`Expected type custom:${$}`);
     this._config = {
       ...t,
-      defaults: { ...R, ...t.defaults ?? {} }
+      defaults: { ...I, ...t.defaults ?? {} }
     }, this.render();
   }
   set hass(t) {
     this._hass = t, this.render();
+  }
+  set editMode(t) {
+    this._editMode = t, this.render();
   }
   getCardSize() {
     return 5;
@@ -409,11 +412,11 @@ class V extends HTMLElement {
   render() {
     var a, r, s;
     if (!this._config) return;
-    const t = this._config, e = ((a = t.background) == null ? void 0 : a.viewBox) ?? j, o = Object.entries(t.nodes ?? {}).filter(([, u]) => !u.hide), n = t.lines ?? [], i = !!((r = t.background) != null && r.showCoordinates && this.isEditorPreview());
+    const t = this._config, e = ((a = t.background) == null ? void 0 : a.viewBox) ?? j, o = Object.entries(t.nodes ?? {}).filter(([, u]) => !u.hide), n = t.lines ?? [], i = !!((r = t.background) != null && r.showCoordinates && this._editMode);
     this._root.innerHTML = `
       <style>${W}</style>
       <ha-card>
-        ${t.title ? `<div class="card-title">${L(t.title)}</div>` : ""}
+        ${t.title ? `<div class="card-title">${P(t.title)}</div>` : ""}
         <div class="stage" style="${this.stageStyle(t)}">
           ${(s = t.background) != null && s.image ? `<img class="background" src="${f(t.background.image)}" alt="">` : ""}
           <svg class="flow-svg" viewBox="${f(e)}" preserveAspectRatio="xMidYMid meet" role="img">
@@ -465,7 +468,7 @@ class V extends HTMLElement {
     return `<g class="coordinate-grid">${i.map((r) => `<path d="M${r} 0 V${n}"></path><text x="${r + 10}" y="28">${r}</text>`).join("")}${a.map((r) => `<path d="M0 ${r} H${o}"></path>${r ? `<text x="10" y="${r - 8}">${r}</text>` : ""}`).join("")}</g>`;
   }
   renderNode(t, e, o) {
-    var w, x, k, _, v, y, N, C;
+    var w, x, k, _, v, y, C, N;
     const n = this.defaults(), i = this.entity(e.entity), a = this.formatEntity(i, e), r = e.secondaryEntity ? this.formatEntity(this.entity(e.secondaryEntity), { ...e, unit: void 0, stateType: "power" }) : "", s = e.name ?? ((x = (w = i == null ? void 0 : i.attributes) == null ? void 0 : w.friendly_name) == null ? void 0 : x.toString()) ?? t, u = e.labelWidth ?? n.labelWidth, c = e.labelHeight ?? n.labelHeight, h = Math.abs(this.entityNumber(e.entity)) > (e.activeAbove ?? n.activeAbove), p = r ? 26 : 32, g = r ? 54 : 61, b = Math.max(42, c - 10), S = [
       (k = e.style) != null && k.background ? `--node-background:${f(e.style.background)}` : "",
       (_ = e.style) != null && _.border ? `--node-border:${f(e.style.border)}` : "",
@@ -474,10 +477,10 @@ class V extends HTMLElement {
     ].filter(Boolean).join(";");
     return `
       <g class="flow-node ${h ? "is-active" : "is-idle"} ${o ? "is-editing" : ""}" data-node-id="${f(t)}" data-entity="${f(e.entity ?? "")}" transform="translate(${e.x} ${e.y})" style="${S}">
-        <rect class="node-box" width="${u}" height="${c}" rx="${((N = e.style) == null ? void 0 : N.radius) ?? 16}" ry="${((C = e.style) == null ? void 0 : C.radius) ?? 16}"></rect>
-        <text class="node-title" x="18" y="${p}">${P(s)}</text>
-        <text class="node-value" x="18" y="${g}">${P(a)}</text>
-        ${r ? `<text class="node-secondary" x="${u - 18}" y="${b}">${P(r)}</text>` : ""}
+        <rect class="node-box" width="${u}" height="${c}" rx="${((C = e.style) == null ? void 0 : C.radius) ?? 16}" ry="${((N = e.style) == null ? void 0 : N.radius) ?? 16}"></rect>
+        <text class="node-title" x="18" y="${p}">${L(s)}</text>
+        <text class="node-value" x="18" y="${g}">${L(a)}</text>
+        ${r ? `<text class="node-secondary" x="${u - 18}" y="${b}">${L(r)}</text>` : ""}
         ${o ? `<text class="node-coordinates" x="0" y="${c + 21}">x ${e.x} · y ${e.y}</text>` : ""}
       </g>
     `;
@@ -486,7 +489,7 @@ class V extends HTMLElement {
     var n, i;
     const t = this._root.querySelector(".flow-svg");
     if (!t) return;
-    const e = !!((i = (n = this._config) == null ? void 0 : n.background) != null && i.showCoordinates && this.isEditorPreview());
+    const e = !!((i = (n = this._config) == null ? void 0 : n.background) != null && i.showCoordinates && this._editMode);
     this._root.querySelectorAll(".flow-node[data-node-id]").forEach((a) => {
       const r = a.dataset.entity;
       a.addEventListener("pointerdown", (s) => {
@@ -516,7 +519,7 @@ class V extends HTMLElement {
   bindLineActions() {
     var e, o;
     const t = this._root.querySelector(".flow-svg");
-    !t || !((o = (e = this._config) == null ? void 0 : e.background) != null && o.showCoordinates) || !this.isEditorPreview() || this._root.querySelectorAll(".flow-line[data-line-id]").forEach((n) => {
+    !t || !((o = (e = this._config) == null ? void 0 : e.background) != null && o.showCoordinates) || !this._editMode || this._root.querySelectorAll(".flow-line[data-line-id]").forEach((n) => {
       const i = n.dataset.lineId ?? "";
       n.querySelectorAll(".line-handle").forEach((a) => {
         a.addEventListener("pointerdown", (r) => {
@@ -560,19 +563,6 @@ class V extends HTMLElement {
       y: n ? Math.round(t.y / o) * o : Math.round(t.y)
     };
   }
-  isEditorPreview() {
-    let t = this;
-    for (; t; ) {
-      if (t instanceof HTMLElement && t.localName === "hui-card-preview") return !0;
-      if (t.parentNode) {
-        t = t.parentNode;
-        continue;
-      }
-      const e = t.getRootNode();
-      t = e instanceof ShadowRoot ? e.host : null;
-    }
-    return !1;
-  }
   svgPoint(t, e) {
     const [o = 0, n = 0, i = 1e3, a = 1e3] = (t.getAttribute("viewBox") ?? j).split(/\s+/).map(Number), r = t.getBoundingClientRect();
     return {
@@ -594,7 +584,7 @@ class V extends HTMLElement {
   }
   defaults() {
     var t;
-    return { ...R, ...((t = this._config) == null ? void 0 : t.defaults) ?? {} };
+    return { ...I, ...((t = this._config) == null ? void 0 : t.defaults) ?? {} };
   }
   entityNumber(t) {
     const e = this.entity(t), o = Number(e == null ? void 0 : e.state);
@@ -778,7 +768,7 @@ function E(l) {
   return l.map((t, e) => `${e ? "L" : "M"}${t.x} ${t.y}`).join(" ");
 }
 function G(l, t, e, o, n) {
-  const i = H(l, e, o ?? "bottom"), a = H(t, e, n ?? "bottom");
+  const i = D(l, e, o ?? "bottom"), a = D(t, e, n ?? "bottom");
   if (o === "left" || o === "right" || n === "left" || n === "right") {
     const u = Math.round((i.x + a.x) / 2);
     return E([i, { x: u, y: i.y }, { x: u, y: a.y }, a]);
@@ -786,7 +776,7 @@ function G(l, t, e, o, n) {
   const s = Math.round((i.y + a.y) / 2);
   return E([i, { x: i.x, y: s }, { x: a.x, y: s }, a]);
 }
-function H(l, t, e) {
+function D(l, t, e) {
   const o = l.labelWidth ?? t.labelWidth, n = l.labelHeight ?? t.labelHeight;
   return e === "top" ? { x: l.x + o / 2, y: l.y } : e === "bottom" ? { x: l.x + o / 2, y: l.y + n } : e === "left" ? { x: l.x, y: l.y + n / 2 } : { x: l.x + o, y: l.y + n / 2 };
 }
@@ -801,14 +791,14 @@ function Y(l, t) {
 function K(l) {
   return `efb-${l.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 }
-function L(l) {
+function P(l) {
   return l.replace(/[&<>"']/g, (t) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[t] ?? t);
 }
 function f(l) {
-  return L(l);
+  return P(l);
 }
-function P(l) {
-  return L(l);
+function L(l) {
+  return P(l);
 }
 customElements.define($, V);
 window.customCards = window.customCards ?? [];

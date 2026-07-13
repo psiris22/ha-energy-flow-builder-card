@@ -25,6 +25,7 @@ const DEFAULT_CONFIG: DefaultConfig = {
 class EnergyFlowBuilderCard extends HTMLElement {
   private _config?: EnergyFlowBuilderCardConfig;
   private _hass?: HomeAssistant;
+  private _editMode = false;
   private readonly _root = this.attachShadow({ mode: "open" });
   private _drag?: { id: string; node: SVGGElement; pointerId: number; offsetX: number; offsetY: number; moved: boolean };
   private _lineDrag?: { id: string; index: number; handle: SVGCircleElement; group: SVGGElement; points: Array<{ x: number; y: number }> };
@@ -42,6 +43,11 @@ class EnergyFlowBuilderCard extends HTMLElement {
 
   set hass(hass: HomeAssistant) {
     this._hass = hass;
+    this.render();
+  }
+
+  set editMode(editMode: boolean) {
+    this._editMode = editMode;
     this.render();
   }
 
@@ -77,7 +83,7 @@ class EnergyFlowBuilderCard extends HTMLElement {
     const viewBox = config.background?.viewBox ?? DEFAULT_VIEW_BOX;
     const nodes = Object.entries(config.nodes ?? {}).filter(([, node]) => !node.hide);
     const lines = config.lines ?? [];
-    const showCoordinates = Boolean(config.background?.showCoordinates && this.isEditorPreview());
+    const showCoordinates = Boolean(config.background?.showCoordinates && this._editMode);
 
     this._root.innerHTML = `
       <style>${styles}</style>
@@ -194,7 +200,7 @@ class EnergyFlowBuilderCard extends HTMLElement {
   private bindNodeActions(): void {
     const svg = this._root.querySelector<SVGSVGElement>(".flow-svg");
     if (!svg) return;
-    const allowDragging = Boolean(this._config?.background?.showCoordinates && this.isEditorPreview());
+    const allowDragging = Boolean(this._config?.background?.showCoordinates && this._editMode);
     const nodes = this._root.querySelectorAll<SVGGElement>(".flow-node[data-node-id]");
     nodes.forEach((node) => {
       const entityId = node.dataset.entity;
@@ -242,7 +248,7 @@ class EnergyFlowBuilderCard extends HTMLElement {
 
   private bindLineActions(): void {
     const svg = this._root.querySelector<SVGSVGElement>(".flow-svg");
-    if (!svg || !this._config?.background?.showCoordinates || !this.isEditorPreview()) return;
+    if (!svg || !this._config?.background?.showCoordinates || !this._editMode) return;
     this._root.querySelectorAll<SVGGElement>(".flow-line[data-line-id]").forEach((group) => {
       const id = group.dataset.lineId ?? "";
       group.querySelectorAll<SVGCircleElement>(".line-handle").forEach((handle) => {
@@ -299,20 +305,6 @@ class EnergyFlowBuilderCard extends HTMLElement {
       x: snap ? Math.round(point.x / grid) * grid : Math.round(point.x),
       y: snap ? Math.round(point.y / grid) * grid : Math.round(point.y)
     };
-  }
-
-  private isEditorPreview(): boolean {
-    let current: Node | null = this;
-    while (current) {
-      if (current instanceof HTMLElement && current.localName === "hui-card-preview") return true;
-      if (current.parentNode) {
-        current = current.parentNode;
-        continue;
-      }
-      const root = current.getRootNode();
-      current = root instanceof ShadowRoot ? root.host : null;
-    }
-    return false;
   }
 
   private svgPoint(svg: SVGSVGElement, event: PointerEvent | MouseEvent): { x: number; y: number } {
