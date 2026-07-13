@@ -93,7 +93,7 @@ class R extends HTMLElement {
       <summary>${y(t.id || `Linie ${e + 1}`)} <span>${y(t.entity ?? "Keine Entity")}</span></summary>
       <div class="content">
         <div class="row"><label>ID <input data-line="${e}" data-key="id" value="${c(t.id)}"></label><label>Breite <input type="number" data-line="${e}" data-key="width" value="${t.width ?? ""}" placeholder="Standard"></label></div>
-        <label>Steuernde Entity ${this.entitySelect("line", String(e), "entity", t.entity)}</label>
+        <label>Steuernde Entity ${this.lineEntitySelect(e, t.entity)}</label>
         <label class="check"><input type="checkbox" data-line="${e}" data-key="autoRoute" ${t.autoRoute ? "checked" : ""}> Automatisch zwischen zwei Anzeigen verbinden</label>
         <div class="row"><label>Von ${this.nodeSelect(e, "source", t.source, o)}</label><label>Nach ${this.nodeSelect(e, "target", t.target, o)}</label></div>
         <div class="row"><label>Startseite ${this.portSelect(e, "sourcePort", t.sourcePort)}</label><label>Zielseite ${this.portSelect(e, "targetPort", t.targetPort)}</label></div>
@@ -108,6 +108,10 @@ class R extends HTMLElement {
   }
   entitySelect(t, e, o, a, i = !1) {
     return `<input class="entity-search" type="search" list="efb-entity-list" ${t === "node" ? `data-node="${c(e)}"` : `data-line="${c(e)}"`} data-key="${o}" value="${c(a ?? "")}" placeholder="${i ? "Keine zweite Entity" : "Entität suchen..."}" autocomplete="off">`;
+  }
+  lineEntitySelect(t, e) {
+    const o = this.nodeEntityIds(), a = e && !o.includes(e) ? [e, ...o] : o;
+    return `<select data-line="${t}" data-key="entity"><option value="">Keine Entity</option>${a.map((i) => `<option value="${c(i)}" ${i === e ? "selected" : ""}>${y(this.entityLabel(i))} (${y(i)})</option>`).join("")}</select>`;
   }
   nodeSelect(t, e, o, a) {
     return `<select data-line="${t}" data-key="${e}"><option value="">Nicht gewählt</option>${a.map(([i, n]) => `<option value="${c(i)}" ${i === o ? "selected" : ""}>${y(n.name ?? i)} (${y(i)})</option>`).join("")}</select>`;
@@ -127,6 +131,16 @@ class R extends HTMLElement {
       var a, i;
       return `<option value="${c(e)}" label="${c(`${((i = (a = o == null ? void 0 : o.attributes) == null ? void 0 : a.friendly_name) == null ? void 0 : i.toString()) ?? e} (${e})`)}"></option>`;
     }).join("");
+  }
+  nodeEntityIds() {
+    const t = /* @__PURE__ */ new Set();
+    return Object.values(this.config().nodes ?? {}).forEach((e) => {
+      e.entity && t.add(e.entity), e.secondaryEntity && t.add(e.secondaryEntity);
+    }), [...t].sort((e, o) => this.entityLabel(e).localeCompare(this.entityLabel(o)));
+  }
+  entityLabel(t) {
+    var e, o, a, i;
+    return ((i = (a = (o = (e = this._hass) == null ? void 0 : e.states[t]) == null ? void 0 : o.attributes) == null ? void 0 : a.friendly_name) == null ? void 0 : i.toString()) ?? t;
   }
   bind() {
     this._root.querySelectorAll("input[data-path], select[data-path]").forEach((t) => t.addEventListener("change", () => this.updatePath(t.dataset.path, t instanceof HTMLInputElement && t.type === "checkbox" ? t.checked : t.value))), this._root.querySelectorAll("[data-node][data-key]").forEach((t) => t.addEventListener("change", () => this.updateNode(t.dataset.node, t.dataset.key, t))), this._root.querySelectorAll("[data-node-style][data-key]").forEach((t) => t.addEventListener("change", () => this.updateNodeStyle(t.dataset.nodeStyle, t.dataset.key, t))), this._root.querySelectorAll("input[data-node-id]").forEach((t) => t.addEventListener("change", () => this.renameNode(t.dataset.nodeId, t.value))), this._root.querySelectorAll("[data-line][data-key]").forEach((t) => t.addEventListener("change", () => this.updateLine(Number(t.dataset.line), t.dataset.key, t))), this._root.querySelectorAll("button[data-action]").forEach((t) => t.addEventListener("click", () => this.action(t))), this._root.querySelectorAll('input[data-action="select-image"]').forEach((t) => t.addEventListener("change", () => this.selectImage(t))), this._root.querySelectorAll('input[data-action="import-file"]').forEach((t) => t.addEventListener("change", () => this.importConfig(t))), this._root.querySelectorAll("details[data-section]").forEach((t) => t.addEventListener("toggle", () => {
@@ -426,7 +440,7 @@ class F extends HTMLElement {
     if (!s && t.hideWhenInactive) return "";
     const d = this.linePath(t, i);
     if (!d) return "";
-    const u = G(t.id), h = t.width ?? o.lineWidth, g = t.duration ?? W(n, o.duration), f = t.color ?? o.lineColor, m = t.trackColor ?? o.trackColor, w = t.pulseColor ?? o.pulseColor, k = t.dashPattern ? `--dash-pattern:${p(t.dashPattern)};` : "", x = Math.max(0, Math.min(4, t.pulseCount ?? 2)), _ = i < 0 ? "reverse" : "normal", E = s ? "1" : ".38";
+    const u = G(t.id), h = t.width ?? o.lineWidth, g = t.duration ?? O(n, o.duration), f = t.color ?? o.lineColor, m = t.trackColor ?? o.trackColor, w = t.pulseColor ?? o.pulseColor, k = t.dashPattern ? `--dash-pattern:${p(t.dashPattern)};` : "", x = Math.max(0, Math.min(4, t.pulseCount ?? 2)), _ = i < 0 ? "reverse" : "normal", E = s ? "1" : ".38";
     return `
       <g class="flow-line ${s ? "is-active" : "is-idle"}" data-line-id="${p(t.id)}" style="--line-width:${h};--duration:${g}s;--direction:${_};--flow-opacity:${E};--line-color:${p(f)};--track-color:${p(m)};--pulse-color:${p(w)};${k}">
         <path id="${u}" data-flow-path class="flow-track" d="${p(d)}"></path>
@@ -441,7 +455,7 @@ class F extends HTMLElement {
     if (t.points && t.points.length > 1) return S(t.points);
     if (t.autoRoute && t.source && t.target) {
       const r = (a = (o = this._config) == null ? void 0 : o.nodes) == null ? void 0 : a[t.source], s = (n = (i = this._config) == null ? void 0 : i.nodes) == null ? void 0 : n[t.target];
-      if (r && s) return q(r, s, this.defaults(), t.sourcePort, t.targetPort);
+      if (r && s) return W(r, s, this.defaults(), t.sourcePort, t.targetPort);
     }
     return e < 0 && t.pathNegative ? t.pathNegative : e >= 0 && t.pathPositive ? t.pathPositive : t.path;
   }
@@ -521,7 +535,7 @@ class F extends HTMLElement {
         const r = (u = (d = this._config) == null ? void 0 : d.lines) == null ? void 0 : u.find((h) => h.id === i);
         if (!(r != null && r.points) || r.points.length < 2) return;
         const s = this.snapPoint(this.svgPoint(t, n));
-        window.dispatchEvent(new CustomEvent("energy-flow-builder-line-point-added", { detail: { id: i, index: O(r.points, s), x: s.x, y: s.y } })), n.preventDefault();
+        window.dispatchEvent(new CustomEvent("energy-flow-builder-line-point-added", { detail: { id: i, index: q(r.points, s), x: s.x, y: s.y } })), n.preventDefault();
       });
     });
   }
@@ -742,7 +756,7 @@ const V = `
     to { stroke-dashoffset: -216; }
   }
 `;
-function W(l, t) {
+function O(l, t) {
   if (l <= 0) return t;
   const e = Math.max(100, Math.min(l, 8e3));
   return Number((6 - (e - 100) / 7900 * 4.4).toFixed(2));
@@ -750,7 +764,7 @@ function W(l, t) {
 function S(l) {
   return l.map((t, e) => `${e ? "L" : "M"}${t.x} ${t.y}`).join(" ");
 }
-function q(l, t, e, o, a) {
+function W(l, t, e, o, a) {
   const i = j(l, e, o ?? "right"), n = j(t, e, a ?? "left");
   if (o === "left" || o === "right" || a === "left" || a === "right") {
     const d = Math.round((i.x + n.x) / 2);
@@ -763,7 +777,7 @@ function j(l, t, e) {
   const o = l.labelWidth ?? t.labelWidth, a = l.labelHeight ?? t.labelHeight;
   return e === "top" ? { x: l.x + o / 2, y: l.y } : e === "bottom" ? { x: l.x + o / 2, y: l.y + a } : e === "left" ? { x: l.x, y: l.y + a / 2 } : { x: l.x + o, y: l.y + a / 2 };
 }
-function O(l, t) {
+function q(l, t) {
   let e = 0, o = Number.POSITIVE_INFINITY;
   for (let a = 0; a < l.length - 1; a += 1) {
     const i = l[a], n = l[a + 1], r = (n.x - i.x) ** 2 + (n.y - i.y) ** 2 || 1, s = Math.max(0, Math.min(1, ((t.x - i.x) * (n.x - i.x) + (t.y - i.y) * (n.y - i.y)) / r)), d = i.x + s * (n.x - i.x), u = i.y + s * (n.y - i.y), h = (t.x - d) ** 2 + (t.y - u) ** 2;

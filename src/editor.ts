@@ -122,7 +122,7 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
       <summary>${escapeHtml(line.id || `Linie ${index + 1}`)} <span>${escapeHtml(line.entity ?? "Keine Entity")}</span></summary>
       <div class="content">
         <div class="row"><label>ID <input data-line="${index}" data-key="id" value="${attr(line.id)}"></label><label>Breite <input type="number" data-line="${index}" data-key="width" value="${line.width ?? ""}" placeholder="Standard"></label></div>
-        <label>Steuernde Entity ${this.entitySelect("line", String(index), "entity", line.entity)}</label>
+        <label>Steuernde Entity ${this.lineEntitySelect(index, line.entity)}</label>
         <label class="check"><input type="checkbox" data-line="${index}" data-key="autoRoute" ${line.autoRoute ? "checked" : ""}> Automatisch zwischen zwei Anzeigen verbinden</label>
         <div class="row"><label>Von ${this.nodeSelect(index, "source", line.source, nodes)}</label><label>Nach ${this.nodeSelect(index, "target", line.target, nodes)}</label></div>
         <div class="row"><label>Startseite ${this.portSelect(index, "sourcePort", line.sourcePort)}</label><label>Zielseite ${this.portSelect(index, "targetPort", line.targetPort)}</label></div>
@@ -139,6 +139,12 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
   private entitySelect(kind: "node" | "line", id: string, key: string, current?: string, optional = false): string {
     const data = kind === "node" ? `data-node="${attr(id)}"` : `data-line="${attr(id)}"`;
     return `<input class="entity-search" type="search" list="efb-entity-list" ${data} data-key="${key}" value="${attr(current ?? "")}" placeholder="${optional ? "Keine zweite Entity" : "Entität suchen..."}" autocomplete="off">`;
+  }
+
+  private lineEntitySelect(index: number, current?: string): string {
+    const entityIds = this.nodeEntityIds();
+    const available = current && !entityIds.includes(current) ? [current, ...entityIds] : entityIds;
+    return `<select data-line="${index}" data-key="entity"><option value="">Keine Entity</option>${available.map((entityId) => `<option value="${attr(entityId)}" ${entityId === current ? "selected" : ""}>${escapeHtml(this.entityLabel(entityId))} (${escapeHtml(entityId)})</option>`).join("")}</select>`;
   }
 
   private nodeSelect(index: number, key: string, current: string | undefined, nodes: Array<[string, EnergyFlowNodeConfig]>): string {
@@ -159,6 +165,19 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
       .sort(([a, stateA], [b, stateB]) => (stateA?.attributes?.friendly_name?.toString() ?? a).localeCompare(stateB?.attributes?.friendly_name?.toString() ?? b))
       .map(([entityId, state]) => `<option value="${attr(entityId)}" label="${attr(`${state?.attributes?.friendly_name?.toString() ?? entityId} (${entityId})`)}"></option>`)
       .join("");
+  }
+
+  private nodeEntityIds(): string[] {
+    const used = new Set<string>();
+    Object.values(this.config().nodes ?? {}).forEach((node) => {
+      if (node.entity) used.add(node.entity);
+      if (node.secondaryEntity) used.add(node.secondaryEntity);
+    });
+    return [...used].sort((a, b) => this.entityLabel(a).localeCompare(this.entityLabel(b)));
+  }
+
+  private entityLabel(entityId: string): string {
+    return this._hass?.states[entityId]?.attributes?.friendly_name?.toString() ?? entityId;
   }
 
   private bind(): void {
