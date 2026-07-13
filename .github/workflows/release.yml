@@ -25,7 +25,9 @@ jobs:
       - run: pnpm run build
       - name: Read package version
         id: version
-        run: echo "value=v$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
+        run: |
+          VERSION="v$(node -p "require('./package.json').version")"
+          echo "value=$VERSION" >> "$GITHUB_OUTPUT"
       - name: Publish version when it does not exist yet
         env:
           GH_TOKEN: ${{ github.token }}
