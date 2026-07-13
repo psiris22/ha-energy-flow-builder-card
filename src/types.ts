@@ -17,6 +17,8 @@ export interface EnergyFlowBuilderCardConfig {
     viewBox?: string;
     aspectRatio?: string;
     showCoordinates?: boolean;
+    snapToGrid?: boolean;
+    gridSize?: number;
   };
   defaults?: {
     activeAbove?: number;
@@ -52,6 +54,13 @@ export interface EnergyFlowNodeConfig {
   labelHeight?: number;
   stateType?: "power" | "energy" | "percent" | "raw";
   tapAction?: "more-info" | "none";
+  style?: {
+    background?: string;
+    border?: string;
+    titleColor?: string;
+    valueColor?: string;
+    radius?: number;
+  };
 }
 
 export interface EnergyFlowLineConfig {
@@ -70,4 +79,12 @@ export interface EnergyFlowLineConfig {
   pulseColor?: string;
   duration?: number;
   hideWhenInactive?: boolean;
+  /** Optional endpoints for an automatically routed line between two cards. */
+  source?: string;
+  target?: string;
+  sourcePort?: "top" | "right" | "bottom" | "left";
+  targetPort?: "top" | "right" | "bottom" | "left";
+  autoRoute?: boolean;
+  dashPattern?: string;
+  pulseCount?: number;
 }

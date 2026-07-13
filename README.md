@@ -13,10 +13,12 @@ Die Card ist bewusst unabhaengig von bestimmten Herstellern. Es ist egal, ob dei
 - optional eine zweite Entity pro Anzeige zeigen, zum Beispiel Batterie-Leistung plus Batterie-SoC
 - eigene Hintergrundgrafik verwenden
 - Labels frei per `x`/`y` positionieren
-- Linien frei als SVG-Pfade definieren
+- Linien frei mit der Maus bearbeiten oder automatisch zwischen zwei Anzeigen verlegen
 - Linien anhand von Entity-Werten aktivieren
 - Import/Export oder Laden/Entladen ueber positive und negative Werte abbilden
 - Farben, Linienbreite, Animation und Schwellenwerte anpassen
+- Raster/Snapping, Box-Styling, Vorlagen, Duplizieren sowie Rueckgaengig/Wiederholen nutzen
+- Konfiguration als JSON exportieren und wieder importieren
 
 ## Grundidee
 
@@ -46,7 +48,7 @@ npm run build
 Die gebaute Datei liegt danach hier:
 
 ```text
-dist/energy-flow-builder-card.js
+dist/ha-energy-flow-builder-card.js
 ```
 
 Kopiere sie in dein Home-Assistant-Verzeichnis:
@@ -157,6 +159,10 @@ lines:
 
 Du musst die Entity-IDs nicht von Hand schreiben. Im Lovelace-Karteneditor erscheinen unter **Anzeigen** Auswahlfelder fuer die primaere und optionale zweite Entity. Die Liste kommt direkt aus deiner laufenden Home-Assistant-Instanz und zeigt Friendly Name sowie Entity-ID. Solar, Haus, Batterie, Auto/Wallbox, Netz und Heizung sind nur vorbereitete Anzeigenamen und koennen umbenannt, verschoben, entfernt oder erweitert werden.
 
+Unter **Linien** waehlt man bei aktivierter automatischer Verbindung die Anzeige **Von**, **Nach** und die jeweilige Anschlussseite. Damit ist die Batterie kein fester Mittelpunkt: Jede Anzeige kann mit jeder anderen verbunden werden und die Linie folgt beim Verschieben automatisch. Fuer einen individuellen Verlauf schaltest du die automatische Verbindung aus, aktivierst das Koordinatenraster und ziehst die Punkte direkt in der Vorschau. Doppelklick auf eine Linie fuegt einen weiteren Punkt ein.
+
+Das Koordinatenraster kann optional als Fangraster dienen. Eingeklappte Bereiche bleiben beim Bearbeiten anderer Einstellungen geschlossen. Die obere Werkzeugleiste bietet ausserdem Vorlage, Duplizieren, Rueckgaengig/Wiederholen sowie JSON-Import und -Export.
+
 Fuer sehr komplexe SVG-Pfade oder alle Detailoptionen kannst du jederzeit im Karteneditor auf den YAML-Modus wechseln.
 
 ## Eigene Entitaeten Verbinden
@@ -263,6 +269,7 @@ Nodes sind frei benannt. `solar`, `battery` oder `grid` sind keine Pflichtnamen.
 | `activeAbove` | Eigene Aktivitaetsschwelle fuer diesen Node. |
 | `labelWidth`, `labelHeight` | Eigene Label-Groesse. |
 | `hide` | Node ausblenden. |
+| `style` | Optionales Styling mit Hintergrund, Rahmen, Textfarben und Eckenradius. |
 
 ### `lines`
 
@@ -282,6 +289,11 @@ Nodes sind frei benannt. `solar`, `battery` oder `grid` sind keine Pflichtnamen.
 | `pulseColor` | Farbe der animierten Punkte. |
 | `duration` | Animationsdauer in Sekunden. |
 | `hideWhenInactive` | Linie unterhalb der Schwelle ausblenden. |
+| `source`, `target` | IDs der Start- und Zielanzeige fuer eine automatische Verbindung. |
+| `sourcePort`, `targetPort` | Anschlussseite: `top`, `right`, `bottom` oder `left`. |
+| `autoRoute` | Linie automatisch zwischen Quelle und Ziel verlegen. |
+| `dashPattern` | Eigenes SVG-Strichmuster, etwa `18 80`. |
+| `pulseCount` | Anzahl der animierten Punkte von 0 bis 4. |
 
 ## Entwicklung
 

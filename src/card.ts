@@ -127,25 +127,16 @@ class EnergyFlowBuilderCard extends HTMLElement {
     const color = line.color ?? defaults.lineColor;
     const trackColor = line.trackColor ?? defaults.trackColor;
     const pulseColor = line.pulseColor ?? defaults.pulseColor;
+    const dashPattern = line.dashPattern ? `--dash-pattern:${escapeAttr(line.dashPattern)};` : "";
+    const pulseCount = Math.max(0, Math.min(4, line.pulseCount ?? 2));
     const direction = value < 0 ? "reverse" : "normal";
     const opacity = active ? "1" : ".38";
 
     return `
-      <g class="flow-line ${active ? "is-active" : "is-idle"}" data-line-id="${escapeAttr(line.id)}" style="--line-width:${width};--duration:${duration}s;--direction:${direction};--flow-opacity:${opacity};--line-color:${escapeAttr(color)};--track-color:${escapeAttr(trackColor)};--pulse-color:${escapeAttr(pulseColor)}">
+      <g class="flow-line ${active ? "is-active" : "is-idle"}" data-line-id="${escapeAttr(line.id)}" style="--line-width:${width};--duration:${duration}s;--direction:${direction};--flow-opacity:${opacity};--line-color:${escapeAttr(color)};--track-color:${escapeAttr(trackColor)};--pulse-color:${escapeAttr(pulseColor)};${dashPattern}">
         <path id="${id}" data-flow-path class="flow-track" d="${escapeAttr(path)}"></path>
         <path data-flow-path class="flow-main" d="${escapeAttr(path)}"></path>
-        ${active ? `
-          <circle class="flow-pulse primary" r="${Math.max(5, width * 1.3)}">
-            <animateMotion dur="${duration}s" repeatCount="indefinite" calcMode="paced">
-              <mpath href="#${id}"></mpath>
-            </animateMotion>
-          </circle>
-          <circle class="flow-pulse secondary" r="${Math.max(4, width)}">
-            <animateMotion dur="${duration}s" begin="${duration / 2}s" repeatCount="indefinite" calcMode="paced">
-              <mpath href="#${id}"></mpath>
-            </animateMotion>
-          </circle>
-        ` : ""}
+        ${active ? Array.from({ length: pulseCount }, (_, index) => `<circle class="flow-pulse ${index ? "secondary" : "primary"}" r="${Math.max(index ? 4 : 5, width * (index ? 1 : 1.3))}"><animateMotion dur="${duration}s" begin="${(duration / Math.max(1, pulseCount)) * index}s" repeatCount="indefinite" calcMode="paced"><mpath href="#${id}"></mpath></animateMotion></circle>`).join("") : ""}
         ${showHandles ? (line.points ?? []).map((point, index) => `<circle class="line-handle" data-point-index="${index}" cx="${point.x}" cy="${point.y}" r="13"></circle>`).join("") : ""}
       </g>
     `;
@@ -153,6 +144,11 @@ class EnergyFlowBuilderCard extends HTMLElement {
 
   private linePath(line: EnergyFlowLineConfig, value = 0): string | undefined {
     if (line.points && line.points.length > 1) return pointsToPath(line.points);
+    if (line.autoRoute && line.source && line.target) {
+      const source = this._config?.nodes?.[line.source];
+      const target = this._config?.nodes?.[line.target];
+      if (source && target) return autoRoutePath(source, target, this.defaults(), line.sourcePort, line.targetPort);
+    }
     return value < 0 && line.pathNegative ? line.pathNegative : value >= 0 && line.pathPositive ? line.pathPositive : line.path;
   }
 
@@ -173,10 +169,16 @@ class EnergyFlowBuilderCard extends HTMLElement {
     const width = node.labelWidth ?? defaults.labelWidth;
     const height = node.labelHeight ?? defaults.labelHeight;
     const active = Math.abs(this.entityNumber(node.entity)) > (node.activeAbove ?? defaults.activeAbove);
+    const nodeStyle = [
+      node.style?.background ? `--node-background:${escapeAttr(node.style.background)}` : "",
+      node.style?.border ? `--node-border:${escapeAttr(node.style.border)}` : "",
+      node.style?.titleColor ? `--node-title:${escapeAttr(node.style.titleColor)}` : "",
+      node.style?.valueColor ? `--node-value:${escapeAttr(node.style.valueColor)}` : ""
+    ].filter(Boolean).join(";");
 
     return `
-      <g class="flow-node ${active ? "is-active" : "is-idle"}" data-node-id="${escapeAttr(id)}" data-entity="${escapeAttr(node.entity ?? "")}" transform="translate(${node.x} ${node.y})">
-        <rect class="node-box" width="${width}" height="${height}" rx="16" ry="16"></rect>
+      <g class="flow-node ${active ? "is-active" : "is-idle"}" data-node-id="${escapeAttr(id)}" data-entity="${escapeAttr(node.entity ?? "")}" transform="translate(${node.x} ${node.y})" style="${nodeStyle}">
+        <rect class="node-box" width="${width}" height="${height}" rx="${node.style?.radius ?? 16}" ry="${node.style?.radius ?? 16}"></rect>
         <text class="node-title" x="18" y="32">${escapeSvgText(name)}</text>
         <text class="node-value" x="18" y="61">${escapeSvgText(primary)}</text>
         ${secondary ? `<text class="node-secondary" x="${width - 18}" y="32">${escapeSvgText(secondary)}</text>` : ""}
@@ -208,7 +210,8 @@ class EnergyFlowBuilderCard extends HTMLElement {
         this._drag = undefined;
         if (drag.moved) {
           const point = this.svgPoint(svg, event);
-          this.publishNodePosition(drag.id, point.x - drag.offsetX, point.y - drag.offsetY);
+          const snapped = this.snapPoint({ x: point.x - drag.offsetX, y: point.y - drag.offsetY });
+          this.publishNodePosition(drag.id, snapped.x, snapped.y);
         } else if (entityId) {
           this.openMoreInfo(entityId);
         }
@@ -224,8 +227,9 @@ class EnergyFlowBuilderCard extends HTMLElement {
     const drag = this._drag;
     if (!drag) return;
     const point = this.svgPoint(svg, event);
-    const x = Math.round(point.x - drag.offsetX);
-    const y = Math.round(point.y - drag.offsetY);
+    const snapped = this.snapPoint({ x: point.x - drag.offsetX, y: point.y - drag.offsetY });
+    const x = snapped.x;
+    const y = snapped.y;
     drag.moved = true;
     drag.node.setAttribute("transform", `translate(${x} ${y})`);
     const coordinates = drag.node.querySelector<SVGTextElement>(".node-coordinates");
@@ -259,8 +263,8 @@ class EnergyFlowBuilderCard extends HTMLElement {
       group.addEventListener("dblclick", (event) => {
         const line = this._config?.lines?.find((candidate) => candidate.id === id);
         if (!line?.points || line.points.length < 2) return;
-        const point = this.svgPoint(svg, event);
-        window.dispatchEvent(new CustomEvent("energy-flow-builder-line-point-added", { detail: { id, index: nearestSegment(line.points, point), x: Math.round(point.x), y: Math.round(point.y) } }));
+        const point = this.snapPoint(this.svgPoint(svg, event));
+        window.dispatchEvent(new CustomEvent("energy-flow-builder-line-point-added", { detail: { id, index: nearestSegment(line.points, point), x: point.x, y: point.y } }));
         event.preventDefault();
       });
     });
@@ -269,8 +273,8 @@ class EnergyFlowBuilderCard extends HTMLElement {
   private dragLinePoint(svg: SVGSVGElement, event: PointerEvent): void {
     const drag = this._lineDrag;
     if (!drag) return;
-    const point = this.svgPoint(svg, event);
-    drag.points[drag.index] = { x: Math.round(point.x), y: Math.round(point.y) };
+    const point = this.snapPoint(this.svgPoint(svg, event));
+    drag.points[drag.index] = point;
     drag.handle.setAttribute("cx", String(drag.points[drag.index].x));
     drag.handle.setAttribute("cy", String(drag.points[drag.index].y));
     const path = pointsToPath(drag.points);
@@ -281,6 +285,16 @@ class EnergyFlowBuilderCard extends HTMLElement {
     window.dispatchEvent(new CustomEvent("energy-flow-builder-node-moved", {
       detail: { id, x: Math.round(x), y: Math.round(y) }
     }));
+  }
+
+  private snapPoint(point: { x: number; y: number }): { x: number; y: number } {
+    const background = this._config?.background;
+    const grid = Math.max(1, background?.gridSize ?? 25);
+    const snap = background?.snapToGrid ?? Boolean(background?.showCoordinates);
+    return {
+      x: snap ? Math.round(point.x / grid) * grid : Math.round(point.x),
+      y: snap ? Math.round(point.y / grid) * grid : Math.round(point.y)
+    };
   }
 
   private svgPoint(svg: SVGSVGElement, event: PointerEvent | MouseEvent): { x: number; y: number } {
@@ -387,7 +401,7 @@ const styles = `
     stroke: var(--line-color);
     stroke-width: calc(var(--line-width) * 1px);
     opacity: var(--flow-opacity);
-    stroke-dasharray: 26 190;
+    stroke-dasharray: var(--dash-pattern, 26 190);
     animation: efb-flow var(--duration) linear infinite;
     animation-direction: var(--direction);
     filter: url(#efb-glow);
@@ -427,8 +441,8 @@ const styles = `
   }
 
   .node-box {
-    fill: color-mix(in srgb, var(--card-background-color) 86%, transparent);
-    stroke: color-mix(in srgb, var(--primary-text-color) 14%, transparent);
+    fill: var(--node-background, color-mix(in srgb, var(--card-background-color) 86%, transparent));
+    stroke: var(--node-border, color-mix(in srgb, var(--primary-text-color) 14%, transparent));
     stroke-width: 1.5;
     filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .18));
   }
@@ -464,13 +478,13 @@ const styles = `
   }
 
   .node-title {
-    fill: var(--secondary-text-color);
+    fill: var(--node-title, var(--secondary-text-color));
     font-size: 18px;
     font-weight: 700;
   }
 
   .node-value {
-    fill: var(--primary-text-color);
+    fill: var(--node-value, var(--primary-text-color));
     font-size: 24px;
     font-weight: 800;
   }
@@ -496,6 +510,29 @@ function speedFromValue(value: number, fallback: number): number {
 
 function pointsToPath(points: Array<{ x: number; y: number }>): string {
   return points.map((point, index) => `${index ? "L" : "M"}${point.x} ${point.y}`).join(" ");
+}
+
+type Port = "top" | "right" | "bottom" | "left" | undefined;
+
+function autoRoutePath(source: EnergyFlowNodeConfig, target: EnergyFlowNodeConfig, defaults: DefaultConfig, sourcePort: Port, targetPort: Port): string {
+  const start = nodePort(source, defaults, sourcePort ?? "right");
+  const end = nodePort(target, defaults, targetPort ?? "left");
+  const horizontal = sourcePort === "left" || sourcePort === "right" || targetPort === "left" || targetPort === "right";
+  if (horizontal) {
+    const middle = Math.round((start.x + end.x) / 2);
+    return pointsToPath([start, { x: middle, y: start.y }, { x: middle, y: end.y }, end]);
+  }
+  const middle = Math.round((start.y + end.y) / 2);
+  return pointsToPath([start, { x: start.x, y: middle }, { x: end.x, y: middle }, end]);
+}
+
+function nodePort(node: EnergyFlowNodeConfig, defaults: DefaultConfig, port: Exclude<Port, undefined>): { x: number; y: number } {
+  const width = node.labelWidth ?? defaults.labelWidth;
+  const height = node.labelHeight ?? defaults.labelHeight;
+  if (port === "top") return { x: node.x + width / 2, y: node.y };
+  if (port === "bottom") return { x: node.x + width / 2, y: node.y + height };
+  if (port === "left") return { x: node.x, y: node.y + height / 2 };
+  return { x: node.x + width, y: node.y + height / 2 };
 }
 
 function nearestSegment(points: Array<{ x: number; y: number }>, point: { x: number; y: number }): number {
