@@ -101,7 +101,7 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
       <div class="content">
         <div class="row"><label>Name <input data-node="${attr(id)}" data-key="name" value="${attr(node.name ?? "")}"></label><label>Interne ID <input data-node-id="${attr(id)}" value="${attr(id)}"></label></div>
         <label>Wert-Entity ${this.entitySelect("node", id, "entity", node.entity)}</label>
-        <label>Zweite Entity (optional) ${this.entitySelect("node", id, "secondaryEntity", node.secondaryEntity, true)}</label>
+        <label>Zweite Entity / Batterie-SoC (optional) ${this.entitySelect("node", id, "secondaryEntity", node.secondaryEntity, true)}</label>
         <div class="row three"><label>X <input type="number" data-node="${attr(id)}" data-key="x" value="${numberValue(node.x)}"></label><label>Y <input type="number" data-node="${attr(id)}" data-key="y" value="${numberValue(node.y)}"></label><label>Nachkommastellen <input type="number" min="0" max="4" data-node="${attr(id)}" data-key="decimals" value="${node.decimals ?? ""}" placeholder="auto"></label></div>
         <div class="row"><label>Breite <input type="number" data-node="${attr(id)}" data-key="labelWidth" value="${node.labelWidth ?? ""}" placeholder="Standard"></label><label>Höhe <input type="number" data-node="${attr(id)}" data-key="labelHeight" value="${node.labelHeight ?? ""}" placeholder="Standard"></label></div>
         <label>Linienanschluss ${this.nodePortSelect(id, node.connectionPort)}</label>

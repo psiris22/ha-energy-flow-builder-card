@@ -163,7 +163,7 @@ Unter **Anzeigen** wird der **Linienanschluss** pro Box festgelegt. Standard ist
 
 Das Koordinatenraster kann optional als Fangraster dienen. Eingeklappte Bereiche bleiben beim Bearbeiten anderer Einstellungen geschlossen. Die obere Werkzeugleiste bietet ausserdem Vorlage, Duplizieren, Rueckgaengig/Wiederholen sowie JSON-Import und -Export.
 
-Solange das Koordinatenraster aktiv ist, lassen sich die Beschreibungsboxen direkt in der Vorschau mit der Maus verschieben. Die neue X/Y-Position wird beim Loslassen automatisch gespeichert.
+Solange das Koordinatenraster aktiv ist, lassen sich die Beschreibungsboxen direkt in der Vorschau mit der Maus verschieben. Die neue X/Y-Position wird beim Loslassen automatisch gespeichert. Raster, Koordinaten und Ziehpunkte sind nur im Editor sichtbar, nie auf dem fertigen Dashboard.
 
 Fuer sehr komplexe SVG-Pfade oder alle Detailoptionen kannst du jederzeit im Karteneditor auf den YAML-Modus wechseln.
 
@@ -265,7 +265,7 @@ Nodes sind frei benannt. `solar`, `battery` oder `grid` sind keine Pflichtnamen.
 | `x`, `y` | Position im SVG-Koordinatensystem. |
 | `name` | Anzeigename. Wenn leer, wird der Friendly Name der Entity verwendet. |
 | `entity` | Primaere Home-Assistant-Entity. |
-| `secondaryEntity` | Optionale zweite Entity im Label. |
+| `secondaryEntity` | Optionale zweite Entity im Label, zum Beispiel Batterie-State-of-Charge. Sie wird mit ihrer eigenen Einheit wie `%` angezeigt. |
 | `unit` | Optionale Einheit, ueberschreibt die Entity-Einheit. |
 | `decimals` | Anzahl der Nachkommastellen. |
 | `activeAbove` | Eigene Aktivitaetsschwelle fuer diesen Node. |

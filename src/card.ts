@@ -77,6 +77,7 @@ class EnergyFlowBuilderCard extends HTMLElement {
     const viewBox = config.background?.viewBox ?? DEFAULT_VIEW_BOX;
     const nodes = Object.entries(config.nodes ?? {}).filter(([, node]) => !node.hide);
     const lines = config.lines ?? [];
+    const showCoordinates = Boolean(config.background?.showCoordinates && this.isEditorPreview());
 
     this._root.innerHTML = `
       <style>${styles}</style>
@@ -91,9 +92,9 @@ class EnergyFlowBuilderCard extends HTMLElement {
                 <feMerge><feMergeNode in="glow"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
               </filter>
             </defs>
-            ${lines.map((line) => this.renderLine(line, Boolean(config.background?.showCoordinates))).join("")}
-            ${config.background?.showCoordinates ? this.renderCoordinateGrid(viewBox) : ""}
-            ${nodes.map(([id, node]) => this.renderNode(id, node, Boolean(config.background?.showCoordinates))).join("")}
+            ${lines.map((line) => this.renderLine(line, showCoordinates)).join("")}
+            ${showCoordinates ? this.renderCoordinateGrid(viewBox) : ""}
+            ${nodes.map(([id, node]) => this.renderNode(id, node, showCoordinates)).join("")}
           </svg>
         </div>
       </ha-card>
@@ -164,11 +165,14 @@ class EnergyFlowBuilderCard extends HTMLElement {
     const defaults = this.defaults();
     const entity = this.entity(node.entity);
     const primary = this.formatEntity(entity, node);
-    const secondary = node.secondaryEntity ? this.formatEntity(this.entity(node.secondaryEntity), { ...node, stateType: "raw" }) : "";
+    const secondary = node.secondaryEntity ? this.formatEntity(this.entity(node.secondaryEntity), { ...node, unit: undefined, stateType: "power" }) : "";
     const name = node.name ?? entity?.attributes?.friendly_name?.toString() ?? id;
     const width = node.labelWidth ?? defaults.labelWidth;
     const height = node.labelHeight ?? defaults.labelHeight;
     const active = Math.abs(this.entityNumber(node.entity)) > (node.activeAbove ?? defaults.activeAbove);
+    const titleY = secondary ? 26 : 32;
+    const valueY = secondary ? 54 : 61;
+    const secondaryY = Math.max(42, height - 10);
     const nodeStyle = [
       node.style?.background ? `--node-background:${escapeAttr(node.style.background)}` : "",
       node.style?.border ? `--node-border:${escapeAttr(node.style.border)}` : "",
@@ -179,9 +183,9 @@ class EnergyFlowBuilderCard extends HTMLElement {
     return `
       <g class="flow-node ${active ? "is-active" : "is-idle"} ${showCoordinates ? "is-editing" : ""}" data-node-id="${escapeAttr(id)}" data-entity="${escapeAttr(node.entity ?? "")}" transform="translate(${node.x} ${node.y})" style="${nodeStyle}">
         <rect class="node-box" width="${width}" height="${height}" rx="${node.style?.radius ?? 16}" ry="${node.style?.radius ?? 16}"></rect>
-        <text class="node-title" x="18" y="32">${escapeSvgText(name)}</text>
-        <text class="node-value" x="18" y="61">${escapeSvgText(primary)}</text>
-        ${secondary ? `<text class="node-secondary" x="${width - 18}" y="32">${escapeSvgText(secondary)}</text>` : ""}
+        <text class="node-title" x="18" y="${titleY}">${escapeSvgText(name)}</text>
+        <text class="node-value" x="18" y="${valueY}">${escapeSvgText(primary)}</text>
+        ${secondary ? `<text class="node-secondary" x="${width - 18}" y="${secondaryY}">${escapeSvgText(secondary)}</text>` : ""}
         ${showCoordinates ? `<text class="node-coordinates" x="0" y="${height + 21}">x ${node.x} · y ${node.y}</text>` : ""}
       </g>
     `;
@@ -190,7 +194,7 @@ class EnergyFlowBuilderCard extends HTMLElement {
   private bindNodeActions(): void {
     const svg = this._root.querySelector<SVGSVGElement>(".flow-svg");
     if (!svg) return;
-    const allowDragging = Boolean(this._config?.background?.showCoordinates);
+    const allowDragging = Boolean(this._config?.background?.showCoordinates && this.isEditorPreview());
     const nodes = this._root.querySelectorAll<SVGGElement>(".flow-node[data-node-id]");
     nodes.forEach((node) => {
       const entityId = node.dataset.entity;
@@ -238,7 +242,7 @@ class EnergyFlowBuilderCard extends HTMLElement {
 
   private bindLineActions(): void {
     const svg = this._root.querySelector<SVGSVGElement>(".flow-svg");
-    if (!svg || !this._config?.background?.showCoordinates) return;
+    if (!svg || !this._config?.background?.showCoordinates || !this.isEditorPreview()) return;
     this._root.querySelectorAll<SVGGElement>(".flow-line[data-line-id]").forEach((group) => {
       const id = group.dataset.lineId ?? "";
       group.querySelectorAll<SVGCircleElement>(".line-handle").forEach((handle) => {
@@ -295,6 +299,20 @@ class EnergyFlowBuilderCard extends HTMLElement {
       x: snap ? Math.round(point.x / grid) * grid : Math.round(point.x),
       y: snap ? Math.round(point.y / grid) * grid : Math.round(point.y)
     };
+  }
+
+  private isEditorPreview(): boolean {
+    let current: Node | null = this;
+    while (current) {
+      if (current instanceof HTMLElement && current.localName === "hui-card-preview") return true;
+      if (current.parentNode) {
+        current = current.parentNode;
+        continue;
+      }
+      const root = current.getRootNode();
+      current = root instanceof ShadowRoot ? root.host : null;
+    }
+    return false;
   }
 
   private svgPoint(svg: SVGSVGElement, event: PointerEvent | MouseEvent): { x: number; y: number } {
