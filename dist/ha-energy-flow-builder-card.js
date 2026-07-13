@@ -1,5 +1,5 @@
-const H = "energy-flow-builder-card-editor";
-class R extends HTMLElement {
+const I = "energy-flow-builder-card-editor";
+class D extends HTMLElement {
   constructor() {
     super(...arguments), this._entitySignature = "", this._openSections = /* @__PURE__ */ new Map(), this._history = [], this._future = [], this._root = this.attachShadow({ mode: "open" }), this._onNodeMoved = (t) => {
       const e = t.detail;
@@ -29,7 +29,7 @@ class R extends HTMLElement {
     e !== this._entitySignature && (this._entitySignature = e, this.render());
   }
   render() {
-    var a, i, n, r, s, d, c, h, p;
+    var a, i, n, r, s, u, c, h, p;
     if (!this._config) return;
     const t = this._config, e = Object.entries(t.nodes ?? {}), o = t.lines ?? [];
     this._root.innerHTML = `
@@ -46,16 +46,16 @@ class R extends HTMLElement {
         </div>
         <div class="intro">Wähle deine lokalen Entitäten und passe die Positionen an. Die Vorschau aktualisiert sich sofort.</div>
         <div class="section">
-          <label>Überschrift <input data-path="title" value="${u(t.title ?? "")}" placeholder="Energiefluss"></label>
+          <label>Überschrift <input data-path="title" value="${d(t.title ?? "")}" placeholder="Energiefluss"></label>
           <div class="row">
-            <label>Hintergrundfarbe <input data-path="background.color" value="${u(((a = t.background) == null ? void 0 : a.color) ?? "")}" placeholder="#dbeafe"></label>
-            <label>Koordinatenraum <input data-path="background.viewBox" value="${u(((i = t.background) == null ? void 0 : i.viewBox) ?? "0 0 1073 1466")}"></label>
+            <label>Hintergrundfarbe <input data-path="background.color" value="${d(((a = t.background) == null ? void 0 : a.color) ?? "")}" placeholder="#dbeafe"></label>
+            <label>Koordinatenraum <input data-path="background.viewBox" value="${d(((i = t.background) == null ? void 0 : i.viewBox) ?? "0 0 1073 1466")}"></label>
           </div>
-          <label>Hintergrundbild per Pfad <input data-path="background.image" value="${u(M((n = t.background) == null ? void 0 : n.image) ? "" : ((r = t.background) == null ? void 0 : r.image) ?? "")}" placeholder="/local/meine-grafik.png"></label>
+          <label>Hintergrundbild per Pfad <input data-path="background.image" value="${d(M((n = t.background) == null ? void 0 : n.image) ? "" : ((r = t.background) == null ? void 0 : r.image) ?? "")}" placeholder="/local/meine-grafik.png"></label>
           <label>Bild vom Computer auswählen <input class="file-input" type="file" accept="image/png,image/jpeg,image/webp" data-action="select-image"></label>
           <div class="file-note">Das Bild wird direkt in dieser Karten-Konfiguration gespeichert.</div>
           ${M((s = t.background) == null ? void 0 : s.image) ? '<button class="secondary" type="button" data-action="clear-image">Ausgewähltes Bild entfernen</button>' : ""}
-          <label class="check"><input type="checkbox" data-path="background.showCoordinates" ${(d = t.background) != null && d.showCoordinates ? "checked" : ""}> Koordinatenraster und X/Y-Werte in der Vorschau zeigen</label>
+          <label class="check"><input type="checkbox" data-path="background.showCoordinates" ${(u = t.background) != null && u.showCoordinates ? "checked" : ""}> Koordinatenraster und X/Y-Werte in der Vorschau zeigen</label>
           <div class="row"><label class="check"><input type="checkbox" data-path="background.snapToGrid" ${((c = t.background) == null ? void 0 : c.snapToGrid) ?? ((h = t.background) == null ? void 0 : h.showCoordinates) ? "checked" : ""}> Am Raster einrasten</label><label>Rasterabstand <input type="number" min="1" data-path="background.gridSize" value="${((p = t.background) == null ? void 0 : p.gridSize) ?? 25}"></label></div>
         </div>
         <div class="heading"><h3>Anzeigen</h3><button type="button" data-action="add-node">Anzeige hinzufügen</button></div>
@@ -67,23 +67,23 @@ class R extends HTMLElement {
   }
   nodeForm(t, e) {
     var o, a, i, n, r;
-    return `<details class="item" data-section="node:${u(t)}" ${this.sectionOpen(`node:${t}`, !0) ? "open" : ""}>
+    return `<details class="item" data-section="node:${d(t)}" ${this.sectionOpen(`node:${t}`, !0) ? "open" : ""}>
       <summary>${y(e.name ?? t)} <span>${y(e.entity ?? "Keine Entity")}</span></summary>
       <div class="content">
-        <div class="row"><label>Name <input data-node="${u(t)}" data-key="name" value="${u(e.name ?? "")}"></label><label>Interne ID <input data-node-id="${u(t)}" value="${u(t)}"></label></div>
+        <div class="row"><label>Name <input data-node="${d(t)}" data-key="name" value="${d(e.name ?? "")}"></label><label>Interne ID <input data-node-id="${d(t)}" value="${d(t)}"></label></div>
         <label>Wert-Entity ${this.entitySelect("node", t, "entity", e.entity)}</label>
         <label>Zweite Entity (optional) ${this.entitySelect("node", t, "secondaryEntity", e.secondaryEntity, !0)}</label>
-        <div class="row three"><label>X <input type="number" data-node="${u(t)}" data-key="x" value="${N(e.x)}"></label><label>Y <input type="number" data-node="${u(t)}" data-key="y" value="${N(e.y)}"></label><label>Nachkommastellen <input type="number" min="0" max="4" data-node="${u(t)}" data-key="decimals" value="${e.decimals ?? ""}" placeholder="auto"></label></div>
-        <div class="row"><label>Breite <input type="number" data-node="${u(t)}" data-key="labelWidth" value="${e.labelWidth ?? ""}" placeholder="Standard"></label><label>Höhe <input type="number" data-node="${u(t)}" data-key="labelHeight" value="${e.labelHeight ?? ""}" placeholder="Standard"></label></div>
+        <div class="row three"><label>X <input type="number" data-node="${d(t)}" data-key="x" value="${N(e.x)}"></label><label>Y <input type="number" data-node="${d(t)}" data-key="y" value="${N(e.y)}"></label><label>Nachkommastellen <input type="number" min="0" max="4" data-node="${d(t)}" data-key="decimals" value="${e.decimals ?? ""}" placeholder="auto"></label></div>
+        <div class="row"><label>Breite <input type="number" data-node="${d(t)}" data-key="labelWidth" value="${e.labelWidth ?? ""}" placeholder="Standard"></label><label>Höhe <input type="number" data-node="${d(t)}" data-key="labelHeight" value="${e.labelHeight ?? ""}" placeholder="Standard"></label></div>
         <label>Linienanschluss ${this.nodePortSelect(t, e.connectionPort)}</label>
-        <details class="subitem" data-section="node-style:${u(t)}" ${this.sectionOpen(`node-style:${t}`) ? "open" : ""}>
+        <details class="subitem" data-section="node-style:${d(t)}" ${this.sectionOpen(`node-style:${t}`) ? "open" : ""}>
           <summary>Darstellung</summary>
-          <div class="row"><label>Hintergrund <input data-node-style="${u(t)}" data-key="background" value="${u(((o = e.style) == null ? void 0 : o.background) ?? "")}" placeholder="#182432"></label><label>Rahmen <input data-node-style="${u(t)}" data-key="border" value="${u(((a = e.style) == null ? void 0 : a.border) ?? "")}" placeholder="#16a6d9"></label></div>
-          <div class="row"><label>Titelfarbe <input data-node-style="${u(t)}" data-key="titleColor" value="${u(((i = e.style) == null ? void 0 : i.titleColor) ?? "")}" placeholder="Standard"></label><label>Wertfarbe <input data-node-style="${u(t)}" data-key="valueColor" value="${u(((n = e.style) == null ? void 0 : n.valueColor) ?? "")}" placeholder="Standard"></label></div>
-          <label>Eckenradius <input type="number" min="0" data-node-style="${u(t)}" data-key="radius" value="${((r = e.style) == null ? void 0 : r.radius) ?? ""}" placeholder="16"></label>
+          <div class="row"><label>Hintergrund <input data-node-style="${d(t)}" data-key="background" value="${d(((o = e.style) == null ? void 0 : o.background) ?? "")}" placeholder="#182432"></label><label>Rahmen <input data-node-style="${d(t)}" data-key="border" value="${d(((a = e.style) == null ? void 0 : a.border) ?? "")}" placeholder="#16a6d9"></label></div>
+          <div class="row"><label>Titelfarbe <input data-node-style="${d(t)}" data-key="titleColor" value="${d(((i = e.style) == null ? void 0 : i.titleColor) ?? "")}" placeholder="Standard"></label><label>Wertfarbe <input data-node-style="${d(t)}" data-key="valueColor" value="${d(((n = e.style) == null ? void 0 : n.valueColor) ?? "")}" placeholder="Standard"></label></div>
+          <label>Eckenradius <input type="number" min="0" data-node-style="${d(t)}" data-key="radius" value="${((r = e.style) == null ? void 0 : r.radius) ?? ""}" placeholder="16"></label>
         </details>
-        <label class="check"><input type="checkbox" data-node="${u(t)}" data-key="hide" ${e.hide ? "checked" : ""}> Anzeige ausblenden</label>
-        <div class="actions"><button class="secondary" type="button" data-action="duplicate-node" data-id="${u(t)}">Duplizieren</button><button class="danger" type="button" data-action="remove-node" data-id="${u(t)}">Anzeige entfernen</button></div>
+        <label class="check"><input type="checkbox" data-node="${d(t)}" data-key="hide" ${e.hide ? "checked" : ""}> Anzeige ausblenden</label>
+        <div class="actions"><button class="secondary" type="button" data-action="duplicate-node" data-id="${d(t)}">Duplizieren</button><button class="danger" type="button" data-action="remove-node" data-id="${d(t)}">Anzeige entfernen</button></div>
       </div>
     </details>`;
   }
@@ -93,14 +93,14 @@ class R extends HTMLElement {
     return `<details class="item" data-section="line:${e}" ${this.sectionOpen(`line:${e}`) ? "open" : ""}>
       <summary>${y(t.id || `Linie ${e + 1}`)} <span>${y(t.entity ?? "Keine Entity")}</span></summary>
       <div class="content">
-        <div class="row"><label>ID <input data-line="${e}" data-key="id" value="${u(t.id)}"></label><label>Breite <input type="number" data-line="${e}" data-key="width" value="${t.width ?? ""}" placeholder="Standard"></label></div>
+        <div class="row"><label>ID <input data-line="${e}" data-key="id" value="${d(t.id)}"></label><label>Breite <input type="number" data-line="${e}" data-key="width" value="${t.width ?? ""}" placeholder="Standard"></label></div>
         <label>Steuernde Entity ${this.lineEntitySelect(e, t.entity)}</label>
         <label class="check"><input type="checkbox" data-line="${e}" data-key="autoRoute" ${t.autoRoute ? "checked" : ""}> Automatisch zwischen zwei Anzeigen verbinden</label>
         <div class="row"><label>Von ${this.nodeSelect(e, "source", t.source, o)}</label><label>Nach ${this.nodeSelect(e, "target", t.target, o)}</label></div>
         <div class="row"><label>Startanschluss ${this.portSelect(e, "sourcePort", t.sourcePort)}</label><label>Zielanschluss ${this.portSelect(e, "targetPort", t.targetPort)}</label></div>
-        ${t.autoRoute ? '<div class="file-note">Die Verbindung folgt den Boxen automatisch. Für einen eigenen Verlauf die automatische Verbindung ausschalten und Punkte bearbeiten.</div>' : `<label>SVG-Pfad <input data-line="${e}" data-key="path" value="${u(t.path ?? "")}" placeholder="M600 500 V1100"></label>`}
+        ${t.autoRoute ? '<div class="file-note">Die Verbindung folgt den Boxen automatisch. Für einen eigenen Verlauf die automatische Verbindung ausschalten und Punkte bearbeiten.</div>' : `<label>SVG-Pfad <input data-line="${e}" data-key="path" value="${d(t.path ?? "")}" placeholder="M600 500 V1100"></label>`}
         ${(a = t.points) != null && a.length ? `<div class="file-note">${t.points.length} bearbeitbare Punkte: Punkte ziehen, Doppelklick auf die Linie für einen weiteren Punkt.</div>` : `<button class="secondary" type="button" data-action="make-points" data-index="${e}">Pfad mit Maus bearbeiten</button>`}
-        <div class="row"><label>Farbe <input data-line="${e}" data-key="color" value="${u(t.color ?? "")}" placeholder="#16a6d9"></label><label>Strichmuster <input data-line="${e}" data-key="dashPattern" value="${u(t.dashPattern ?? "")}" placeholder="26 190"></label></div>
+        <div class="row"><label>Farbe <input data-line="${e}" data-key="color" value="${d(t.color ?? "")}" placeholder="#16a6d9"></label><label>Strichmuster <input data-line="${e}" data-key="dashPattern" value="${d(t.dashPattern ?? "")}" placeholder="26 190"></label></div>
         <div class="row"><label>Schwelle <input type="number" data-line="${e}" data-key="activeAbove" value="${t.activeAbove ?? ""}" placeholder="Standard"></label><label>Animierte Punkte <input type="number" min="0" max="4" data-line="${e}" data-key="pulseCount" value="${t.pulseCount ?? ""}" placeholder="2"></label></div>
         <label class="check"><input type="checkbox" data-line="${e}" data-key="invert" ${t.invert ? "checked" : ""}> Vorzeichen umdrehen</label>
         <div class="actions"><button class="secondary" type="button" data-action="duplicate-line" data-index="${e}">Duplizieren</button><button class="danger" type="button" data-action="remove-line" data-index="${e}">Linie entfernen</button></div>
@@ -108,20 +108,20 @@ class R extends HTMLElement {
     </details>`;
   }
   entitySelect(t, e, o, a, i = !1) {
-    return `<input class="entity-search" type="search" list="efb-entity-list" ${t === "node" ? `data-node="${u(e)}"` : `data-line="${u(e)}"`} data-key="${o}" value="${u(a ?? "")}" placeholder="${i ? "Keine zweite Entity" : "Entität suchen..."}" autocomplete="off">`;
+    return `<input class="entity-search" type="search" list="efb-entity-list" ${t === "node" ? `data-node="${d(e)}"` : `data-line="${d(e)}"`} data-key="${o}" value="${d(a ?? "")}" placeholder="${i ? "Keine zweite Entity" : "Entität suchen..."}" autocomplete="off">`;
   }
   lineEntitySelect(t, e) {
     const o = this.nodeEntityIds(), a = e && !o.includes(e) ? [e, ...o] : o;
-    return `<select data-line="${t}" data-key="entity"><option value="">Keine Entity</option>${a.map((i) => `<option value="${u(i)}" ${i === e ? "selected" : ""}>${y(this.entityLabel(i))} (${y(i)})</option>`).join("")}</select>`;
+    return `<select data-line="${t}" data-key="entity"><option value="">Keine Entity</option>${a.map((i) => `<option value="${d(i)}" ${i === e ? "selected" : ""}>${y(this.entityLabel(i))} (${y(i)})</option>`).join("")}</select>`;
   }
   nodeSelect(t, e, o, a) {
-    return `<select data-line="${t}" data-key="${e}"><option value="">Nicht gewählt</option>${a.map(([i, n]) => `<option value="${u(i)}" ${i === o ? "selected" : ""}>${y(n.name ?? i)} (${y(i)})</option>`).join("")}</select>`;
+    return `<select data-line="${t}" data-key="${e}"><option value="">Nicht gewählt</option>${a.map(([i, n]) => `<option value="${d(i)}" ${i === o ? "selected" : ""}>${y(n.name ?? i)} (${y(i)})</option>`).join("")}</select>`;
   }
   portSelect(t, e, o) {
     return `<select data-line="${t}" data-key="${e}"><option value="" ${o ? "" : "selected"}>Box-Einstellung</option>${this.portOptions(o)}</select>`;
   }
   nodePortSelect(t, e) {
-    return `<select data-node="${u(t)}" data-key="connectionPort">${this.portOptions(e ?? "bottom")}</select>`;
+    return `<select data-node="${d(t)}" data-key="connectionPort">${this.portOptions(e ?? "bottom")}</select>`;
   }
   portOptions(t) {
     return ["top", "right", "bottom", "left"].map((e) => `<option value="${e}" ${e === t ? "selected" : ""}>${{ top: "Oben mittig", right: "Rechts mittig", bottom: "Unten mittig", left: "Links mittig" }[e]}</option>`).join("");
@@ -132,11 +132,11 @@ class R extends HTMLElement {
   entityOptions() {
     var t;
     return Object.entries(((t = this._hass) == null ? void 0 : t.states) ?? {}).filter(([, e]) => !!e).sort(([e, o], [a, i]) => {
-      var n, r, s, d;
-      return (((r = (n = o == null ? void 0 : o.attributes) == null ? void 0 : n.friendly_name) == null ? void 0 : r.toString()) ?? e).localeCompare(((d = (s = i == null ? void 0 : i.attributes) == null ? void 0 : s.friendly_name) == null ? void 0 : d.toString()) ?? a);
+      var n, r, s, u;
+      return (((r = (n = o == null ? void 0 : o.attributes) == null ? void 0 : n.friendly_name) == null ? void 0 : r.toString()) ?? e).localeCompare(((u = (s = i == null ? void 0 : i.attributes) == null ? void 0 : s.friendly_name) == null ? void 0 : u.toString()) ?? a);
     }).map(([e, o]) => {
       var a, i;
-      return `<option value="${u(e)}" label="${u(`${((i = (a = o == null ? void 0 : o.attributes) == null ? void 0 : a.friendly_name) == null ? void 0 : i.toString()) ?? e} (${e})`)}"></option>`;
+      return `<option value="${d(e)}" label="${d(`${((i = (a = o == null ? void 0 : o.attributes) == null ? void 0 : a.friendly_name) == null ? void 0 : i.toString()) ?? e} (${e})`)}"></option>`;
     }).join("");
   }
   nodeEntityIds() {
@@ -179,14 +179,14 @@ class R extends HTMLElement {
       const i = [...e.lines ?? []], n = i[Number(t.dataset.index)];
       if (!n) return;
       let r = `${n.id}_kopie`, s = 2;
-      for (; i.some((d) => d.id === r); ) r = `${n.id}_kopie_${s++}`;
+      for (; i.some((u) => u.id === r); ) r = `${n.id}_kopie_${s++}`;
       i.splice(Number(t.dataset.index) + 1, 0, { ...structuredClone(n), id: r }), this.commit({ ...e, lines: i });
     }
     if (t.dataset.action === "make-points") {
-      const i = [...e.lines ?? []], n = Number(t.dataset.index), r = B(i[n].path ?? "");
-      i[n] = { ...i[n], autoRoute: !1, points: r.length > 1 ? r : I(i[n], e.nodes ?? {}) }, this.commit({ ...e, lines: i });
+      const i = [...e.lines ?? []], n = Number(t.dataset.index), r = H(i[n].path ?? "");
+      i[n] = { ...i[n], autoRoute: !1, points: r.length > 1 ? r : B(i[n], e.nodes ?? {}) }, this.commit({ ...e, lines: i });
     }
-    t.dataset.action === "clear-image" && this.updatePath("background.image", ""), t.dataset.action === "undo" && this.undo(), t.dataset.action === "redo" && this.redo(), t.dataset.action === "export" && this.exportConfig(), t.dataset.action === "import" && ((a = this._root.querySelector('input[data-action="import-file"]')) == null || a.click()), t.dataset.action === "preset" && this.commit(D());
+    t.dataset.action === "clear-image" && this.updatePath("background.image", ""), t.dataset.action === "undo" && this.undo(), t.dataset.action === "redo" && this.redo(), t.dataset.action === "export" && this.exportConfig(), t.dataset.action === "import" && ((a = this._root.querySelector('input[data-action="import-file"]')) == null || a.click()), t.dataset.action === "preset" && this.commit(R());
   }
   selectImage(t) {
     var a;
@@ -220,7 +220,7 @@ class R extends HTMLElement {
   }
   updateNode(t, e, o) {
     const a = { ...this.config().nodes ?? {} }, i = o instanceof HTMLInputElement && o.type === "checkbox" ? o.checked : o.value;
-    a[t] = { ...a[t], [e]: L(e) && i !== "" ? Number(i) : i || void 0 }, this.commit({ ...this.config(), nodes: a });
+    a[t] = { ...a[t], [e]: C(e) && i !== "" ? Number(i) : i || void 0 }, this.commit({ ...this.config(), nodes: a });
   }
   updateNodeStyle(t, e, o) {
     const a = { ...this.config().nodes ?? {} }, i = a[t];
@@ -242,7 +242,7 @@ class R extends HTMLElement {
   }
   updateLine(t, e, o) {
     const a = this.config(), i = [...a.lines ?? []], n = o instanceof HTMLInputElement && o.type === "checkbox" ? o.checked : o.value;
-    i[t] = { ...i[t], [e]: L(e) && n !== "" ? Number(n) : n || void 0 }, this.commit({ ...a, lines: i });
+    i[t] = { ...i[t], [e]: C(e) && n !== "" ? Number(n) : n || void 0 }, this.commit({ ...a, lines: i });
   }
   updateLinePoint(t, e) {
     if (!t.id || t.index === void 0 || !Number.isFinite(t.x) || !Number.isFinite(t.y)) return;
@@ -266,7 +266,7 @@ class R extends HTMLElement {
     e && this._config && (this._history.push(structuredClone(this._config)), this._history.length > 30 && this._history.shift(), this._future = []), this._config = t, this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: t }, bubbles: !0, composed: !0 })), this.render();
   }
 }
-function L(l) {
+function C(l) {
   return ["x", "y", "decimals", "labelWidth", "labelHeight", "width", "activeAbove", "pulseCount"].includes(l);
 }
 function N(l) {
@@ -275,13 +275,13 @@ function N(l) {
 function y(l) {
   return l.replace(/[&<>\"']/g, (t) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[t] ?? t);
 }
-function u(l) {
+function d(l) {
   return y(l);
 }
 function M(l) {
   return !!(l != null && l.startsWith("data:image/"));
 }
-function B(l) {
+function H(l) {
   const t = l.match(/[MLHV]|-?(?:\d*\.\d+|\d+)/g) ?? [], e = [];
   let o = 0, a = "";
   for (; o < t.length; ) {
@@ -294,7 +294,7 @@ function B(l) {
   }
   return e;
 }
-function D() {
+function R() {
   return {
     type: "custom:energy-flow-builder-card",
     title: "Energiefluss",
@@ -314,7 +314,7 @@ function D() {
     ]
   };
 }
-function I(l, t) {
+function B(l, t) {
   const e = l.source ? t[l.source] : void 0, o = l.target ? t[l.target] : void 0;
   if (!e || !o) return [{ x: 100, y: 100 }, { x: 300, y: 100 }];
   const a = (c, h) => {
@@ -358,7 +358,7 @@ const T = `
   .actions { display:flex; gap:18px; align-items:center; }
   @media (max-width: 420px) { .row, .three { grid-template-columns:1fr; gap:0; } }
 `;
-customElements.define(H, R);
+customElements.define(I, D);
 const $ = "energy-flow-builder-card", A = "0 0 1000 1000", z = {
   activeAbove: 10,
   lineWidth: 7,
@@ -424,13 +424,13 @@ class F extends HTMLElement {
               </filter>
             </defs>
             ${a.map((s) => {
-      var d;
-      return this.renderLine(s, !!((d = t.background) != null && d.showCoordinates));
+      var u;
+      return this.renderLine(s, !!((u = t.background) != null && u.showCoordinates));
     }).join("")}
             ${(r = t.background) != null && r.showCoordinates ? this.renderCoordinateGrid(e) : ""}
-            ${o.map(([s, d]) => {
+            ${o.map(([s, u]) => {
       var c;
-      return this.renderNode(s, d, !!((c = t.background) != null && c.showCoordinates));
+      return this.renderNode(s, u, !!((c = t.background) != null && c.showCoordinates));
     }).join("")}
           </svg>
         </div>
@@ -445,13 +445,13 @@ class F extends HTMLElement {
   renderLine(t, e) {
     const o = this.defaults(), a = t.value ?? this.entityNumber(t.entity), i = t.invert ? -a : a, n = Math.abs(i), r = t.activeAbove ?? o.activeAbove, s = n > r;
     if (!s && t.hideWhenInactive) return "";
-    const d = this.linePath(t, i);
-    if (!d) return "";
+    const u = this.linePath(t, i);
+    if (!u) return "";
     const c = G(t.id), h = t.width ?? o.lineWidth, p = t.duration ?? V(n, o.duration), g = t.color ?? o.lineColor, m = t.trackColor ?? o.trackColor, w = t.pulseColor ?? o.pulseColor, k = t.dashPattern ? `--dash-pattern:${f(t.dashPattern)};` : "", x = Math.max(0, Math.min(4, t.pulseCount ?? 2)), _ = i < 0 ? "reverse" : "normal", E = s ? "1" : ".38";
     return `
       <g class="flow-line ${s ? "is-active" : "is-idle"}" data-line-id="${f(t.id)}" style="--line-width:${h};--duration:${p}s;--direction:${_};--flow-opacity:${E};--line-color:${f(g)};--track-color:${f(m)};--pulse-color:${f(w)};${k}">
-        <path id="${c}" data-flow-path class="flow-track" d="${f(d)}"></path>
-        <path data-flow-path class="flow-main" d="${f(d)}"></path>
+        <path id="${c}" data-flow-path class="flow-track" d="${f(u)}"></path>
+        <path data-flow-path class="flow-main" d="${f(u)}"></path>
         ${s ? Array.from({ length: x }, (b, v) => `<circle class="flow-pulse ${v ? "secondary" : "primary"}" r="${Math.max(v ? 4 : 5, h * (v ? 1 : 1.3))}"><animateMotion dur="${p}s" begin="${p / Math.max(1, x) * v}s" repeatCount="indefinite" calcMode="paced"><mpath href="#${c}"></mpath></animateMotion></circle>`).join("") : ""}
         ${e ? (t.points ?? []).map((b, v) => `<circle class="line-handle" data-point-index="${v}" cx="${b.x}" cy="${b.y}" r="13"></circle>`).join("") : ""}
       </g>
@@ -472,18 +472,18 @@ class F extends HTMLElement {
   }
   renderNode(t, e, o) {
     var g, m, w, k, x, _, E, b;
-    const a = this.defaults(), i = this.entity(e.entity), n = this.formatEntity(i, e), r = e.secondaryEntity ? this.formatEntity(this.entity(e.secondaryEntity), { ...e, stateType: "raw" }) : "", s = e.name ?? ((m = (g = i == null ? void 0 : i.attributes) == null ? void 0 : g.friendly_name) == null ? void 0 : m.toString()) ?? t, d = e.labelWidth ?? a.labelWidth, c = e.labelHeight ?? a.labelHeight, h = Math.abs(this.entityNumber(e.entity)) > (e.activeAbove ?? a.activeAbove), p = [
+    const a = this.defaults(), i = this.entity(e.entity), n = this.formatEntity(i, e), r = e.secondaryEntity ? this.formatEntity(this.entity(e.secondaryEntity), { ...e, stateType: "raw" }) : "", s = e.name ?? ((m = (g = i == null ? void 0 : i.attributes) == null ? void 0 : g.friendly_name) == null ? void 0 : m.toString()) ?? t, u = e.labelWidth ?? a.labelWidth, c = e.labelHeight ?? a.labelHeight, h = Math.abs(this.entityNumber(e.entity)) > (e.activeAbove ?? a.activeAbove), p = [
       (w = e.style) != null && w.background ? `--node-background:${f(e.style.background)}` : "",
       (k = e.style) != null && k.border ? `--node-border:${f(e.style.border)}` : "",
       (x = e.style) != null && x.titleColor ? `--node-title:${f(e.style.titleColor)}` : "",
       (_ = e.style) != null && _.valueColor ? `--node-value:${f(e.style.valueColor)}` : ""
     ].filter(Boolean).join(";");
     return `
-      <g class="flow-node ${h ? "is-active" : "is-idle"}" data-node-id="${f(t)}" data-entity="${f(e.entity ?? "")}" transform="translate(${e.x} ${e.y})" style="${p}">
-        <rect class="node-box" width="${d}" height="${c}" rx="${((E = e.style) == null ? void 0 : E.radius) ?? 16}" ry="${((b = e.style) == null ? void 0 : b.radius) ?? 16}"></rect>
-        <text class="node-title" x="18" y="32">${C(s)}</text>
-        <text class="node-value" x="18" y="61">${C(n)}</text>
-        ${r ? `<text class="node-secondary" x="${d - 18}" y="32">${C(r)}</text>` : ""}
+      <g class="flow-node ${h ? "is-active" : "is-idle"} ${o ? "is-editing" : ""}" data-node-id="${f(t)}" data-entity="${f(e.entity ?? "")}" transform="translate(${e.x} ${e.y})" style="${p}">
+        <rect class="node-box" width="${u}" height="${c}" rx="${((E = e.style) == null ? void 0 : E.radius) ?? 16}" ry="${((b = e.style) == null ? void 0 : b.radius) ?? 16}"></rect>
+        <text class="node-title" x="18" y="32">${L(s)}</text>
+        <text class="node-value" x="18" y="61">${L(n)}</text>
+        ${r ? `<text class="node-secondary" x="${u - 18}" y="32">${L(r)}</text>` : ""}
         ${o ? `<text class="node-coordinates" x="0" y="${c + 21}">x ${e.x} · y ${e.y}</text>` : ""}
       </g>
     `;
@@ -498,27 +498,26 @@ class F extends HTMLElement {
       n.addEventListener("pointerdown", (s) => {
         var h, p;
         if (!e) return;
-        const d = this.svgPoint(t, s), c = (p = (h = this._config) == null ? void 0 : h.nodes) == null ? void 0 : p[n.dataset.nodeId ?? ""];
-        c && (this._drag = { id: n.dataset.nodeId ?? "", node: n, offsetX: d.x - c.x, offsetY: d.y - c.y, moved: !1 }, n.setPointerCapture(s.pointerId), s.preventDefault());
-      }), n.addEventListener("pointermove", (s) => this.dragNode(t, s)), n.addEventListener("pointerup", (s) => {
-        const d = this._drag;
-        if (!(!d || d.node !== n))
-          if (this._drag = void 0, d.moved) {
-            const c = this.svgPoint(t, s), h = this.snapPoint({ x: c.x - d.offsetX, y: c.y - d.offsetY });
-            this.publishNodePosition(d.id, h.x, h.y);
-          } else r && this.openMoreInfo(r);
+        const u = this.svgPoint(t, s), c = (p = (h = this._config) == null ? void 0 : h.nodes) == null ? void 0 : p[n.dataset.nodeId ?? ""];
+        c && (this._drag = { id: n.dataset.nodeId ?? "", node: n, pointerId: s.pointerId, offsetX: u.x - c.x, offsetY: u.y - c.y, moved: !1 }, t.setPointerCapture(s.pointerId), s.preventDefault());
       }), n.addEventListener("click", (s) => {
         e ? s.preventDefault() : r && this.openMoreInfo(r);
       });
-    });
+    }), t.addEventListener("pointermove", (n) => this.dragNode(t, n)), t.addEventListener("pointerup", (n) => this.finishNodeDrag(t, n)), t.addEventListener("pointercancel", (n) => this.finishNodeDrag(t, n));
   }
   dragNode(t, e) {
     const o = this._drag;
-    if (!o) return;
+    if (!o || o.pointerId !== e.pointerId) return;
     const a = this.svgPoint(t, e), i = this.snapPoint({ x: a.x - o.offsetX, y: a.y - o.offsetY }), n = i.x, r = i.y;
     o.moved = !0, o.node.setAttribute("transform", `translate(${n} ${r})`);
     const s = o.node.querySelector(".node-coordinates");
     s && (s.textContent = `x ${n} · y ${r}`);
+  }
+  finishNodeDrag(t, e) {
+    const o = this._drag;
+    if (!o || o.pointerId !== e.pointerId || (this._drag = void 0, !o.moved)) return;
+    const a = this.svgPoint(t, e), i = this.snapPoint({ x: a.x - o.offsetX, y: a.y - o.offsetY });
+    this.publishNodePosition(o.id, i.x, i.y);
   }
   bindLineActions() {
     var e, o;
@@ -528,8 +527,8 @@ class F extends HTMLElement {
       a.querySelectorAll(".line-handle").forEach((n) => {
         n.addEventListener("pointerdown", (r) => {
           var c, h, p;
-          const s = (h = (c = this._config) == null ? void 0 : c.lines) == null ? void 0 : h.find((g) => g.id === i), d = Number(n.dataset.pointIndex);
-          (p = s == null ? void 0 : s.points) != null && p[d] && (this._lineDrag = { id: i, index: d, handle: n, group: a, points: s.points.map((g) => ({ ...g })) }, n.setPointerCapture(r.pointerId), r.preventDefault(), r.stopPropagation());
+          const s = (h = (c = this._config) == null ? void 0 : c.lines) == null ? void 0 : h.find((g) => g.id === i), u = Number(n.dataset.pointIndex);
+          (p = s == null ? void 0 : s.points) != null && p[u] && (this._lineDrag = { id: i, index: u, handle: n, group: a, points: s.points.map((g) => ({ ...g })) }, n.setPointerCapture(r.pointerId), r.preventDefault(), r.stopPropagation());
         }), n.addEventListener("pointermove", (r) => this.dragLinePoint(t, r)), n.addEventListener("pointerup", () => {
           const r = this._lineDrag;
           if (!r || r.handle !== n) return;
@@ -538,8 +537,8 @@ class F extends HTMLElement {
           window.dispatchEvent(new CustomEvent("energy-flow-builder-line-point-moved", { detail: { id: r.id, index: r.index, x: s.x, y: s.y } }));
         });
       }), a.addEventListener("dblclick", (n) => {
-        var d, c;
-        const r = (c = (d = this._config) == null ? void 0 : d.lines) == null ? void 0 : c.find((h) => h.id === i);
+        var u, c;
+        const r = (c = (u = this._config) == null ? void 0 : u.lines) == null ? void 0 : c.find((h) => h.id === i);
         if (!(r != null && r.points) || r.points.length < 2) return;
         const s = this.snapPoint(this.svgPoint(t, n));
         window.dispatchEvent(new CustomEvent("energy-flow-builder-line-point-added", { detail: { id: i, index: q(r.points, s), x: s.x, y: s.y } })), n.preventDefault();
@@ -713,12 +712,12 @@ const O = `
     cursor: pointer;
   }
 
-  .coordinate-grid ~ .flow-node {
+  .flow-node.is-editing {
     cursor: grab;
     touch-action: none;
   }
 
-  .coordinate-grid ~ .flow-node:active {
+  .flow-node.is-editing:active {
     cursor: grabbing;
   }
 
@@ -774,8 +773,8 @@ function S(l) {
 function W(l, t, e, o, a) {
   const i = j(l, e, o ?? "bottom"), n = j(t, e, a ?? "bottom");
   if (o === "left" || o === "right" || a === "left" || a === "right") {
-    const d = Math.round((i.x + n.x) / 2);
-    return S([i, { x: d, y: i.y }, { x: d, y: n.y }, n]);
+    const u = Math.round((i.x + n.x) / 2);
+    return S([i, { x: u, y: i.y }, { x: u, y: n.y }, n]);
   }
   const s = Math.round((i.y + n.y) / 2);
   return S([i, { x: i.x, y: s }, { x: n.x, y: s }, n]);
@@ -787,7 +786,7 @@ function j(l, t, e) {
 function q(l, t) {
   let e = 0, o = Number.POSITIVE_INFINITY;
   for (let a = 0; a < l.length - 1; a += 1) {
-    const i = l[a], n = l[a + 1], r = (n.x - i.x) ** 2 + (n.y - i.y) ** 2 || 1, s = Math.max(0, Math.min(1, ((t.x - i.x) * (n.x - i.x) + (t.y - i.y) * (n.y - i.y)) / r)), d = i.x + s * (n.x - i.x), c = i.y + s * (n.y - i.y), h = (t.x - d) ** 2 + (t.y - c) ** 2;
+    const i = l[a], n = l[a + 1], r = (n.x - i.x) ** 2 + (n.y - i.y) ** 2 || 1, s = Math.max(0, Math.min(1, ((t.x - i.x) * (n.x - i.x) + (t.y - i.y) * (n.y - i.y)) / r)), u = i.x + s * (n.x - i.x), c = i.y + s * (n.y - i.y), h = (t.x - u) ** 2 + (t.y - c) ** 2;
     h < o && (o = h, e = a);
   }
   return e + 1;
@@ -801,7 +800,7 @@ function P(l) {
 function f(l) {
   return P(l);
 }
-function C(l) {
+function L(l) {
   return P(l);
 }
 customElements.define($, F);

@@ -26,7 +26,7 @@ class EnergyFlowBuilderCard extends HTMLElement {
   private _config?: EnergyFlowBuilderCardConfig;
   private _hass?: HomeAssistant;
   private readonly _root = this.attachShadow({ mode: "open" });
-  private _drag?: { id: string; node: SVGGElement; offsetX: number; offsetY: number; moved: boolean };
+  private _drag?: { id: string; node: SVGGElement; pointerId: number; offsetX: number; offsetY: number; moved: boolean };
   private _lineDrag?: { id: string; index: number; handle: SVGCircleElement; group: SVGGElement; points: Array<{ x: number; y: number }> };
 
   setConfig(config: EnergyFlowBuilderCardConfig): void {
@@ -177,7 +177,7 @@ class EnergyFlowBuilderCard extends HTMLElement {
     ].filter(Boolean).join(";");
 
     return `
-      <g class="flow-node ${active ? "is-active" : "is-idle"}" data-node-id="${escapeAttr(id)}" data-entity="${escapeAttr(node.entity ?? "")}" transform="translate(${node.x} ${node.y})" style="${nodeStyle}">
+      <g class="flow-node ${active ? "is-active" : "is-idle"} ${showCoordinates ? "is-editing" : ""}" data-node-id="${escapeAttr(id)}" data-entity="${escapeAttr(node.entity ?? "")}" transform="translate(${node.x} ${node.y})" style="${nodeStyle}">
         <rect class="node-box" width="${width}" height="${height}" rx="${node.style?.radius ?? 16}" ry="${node.style?.radius ?? 16}"></rect>
         <text class="node-title" x="18" y="32">${escapeSvgText(name)}</text>
         <text class="node-value" x="18" y="61">${escapeSvgText(primary)}</text>
@@ -199,33 +199,23 @@ class EnergyFlowBuilderCard extends HTMLElement {
         const point = this.svgPoint(svg, event);
         const configNode = this._config?.nodes?.[node.dataset.nodeId ?? ""];
         if (!configNode) return;
-        this._drag = { id: node.dataset.nodeId ?? "", node, offsetX: point.x - configNode.x, offsetY: point.y - configNode.y, moved: false };
-        node.setPointerCapture(event.pointerId);
+        this._drag = { id: node.dataset.nodeId ?? "", node, pointerId: event.pointerId, offsetX: point.x - configNode.x, offsetY: point.y - configNode.y, moved: false };
+        svg.setPointerCapture(event.pointerId);
         event.preventDefault();
-      });
-      node.addEventListener("pointermove", (event) => this.dragNode(svg, event));
-      node.addEventListener("pointerup", (event) => {
-        const drag = this._drag;
-        if (!drag || drag.node !== node) return;
-        this._drag = undefined;
-        if (drag.moved) {
-          const point = this.svgPoint(svg, event);
-          const snapped = this.snapPoint({ x: point.x - drag.offsetX, y: point.y - drag.offsetY });
-          this.publishNodePosition(drag.id, snapped.x, snapped.y);
-        } else if (entityId) {
-          this.openMoreInfo(entityId);
-        }
       });
       node.addEventListener("click", (event) => {
         if (allowDragging) event.preventDefault();
         else if (entityId) this.openMoreInfo(entityId);
       });
     });
+    svg.addEventListener("pointermove", (event) => this.dragNode(svg, event));
+    svg.addEventListener("pointerup", (event) => this.finishNodeDrag(svg, event));
+    svg.addEventListener("pointercancel", (event) => this.finishNodeDrag(svg, event));
   }
 
   private dragNode(svg: SVGSVGElement, event: PointerEvent): void {
     const drag = this._drag;
-    if (!drag) return;
+    if (!drag || drag.pointerId !== event.pointerId) return;
     const point = this.svgPoint(svg, event);
     const snapped = this.snapPoint({ x: point.x - drag.offsetX, y: point.y - drag.offsetY });
     const x = snapped.x;
@@ -234,6 +224,16 @@ class EnergyFlowBuilderCard extends HTMLElement {
     drag.node.setAttribute("transform", `translate(${x} ${y})`);
     const coordinates = drag.node.querySelector<SVGTextElement>(".node-coordinates");
     if (coordinates) coordinates.textContent = `x ${x} · y ${y}`;
+  }
+
+  private finishNodeDrag(svg: SVGSVGElement, event: PointerEvent): void {
+    const drag = this._drag;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    this._drag = undefined;
+    if (!drag.moved) return;
+    const point = this.svgPoint(svg, event);
+    const snapped = this.snapPoint({ x: point.x - drag.offsetX, y: point.y - drag.offsetY });
+    this.publishNodePosition(drag.id, snapped.x, snapped.y);
   }
 
   private bindLineActions(): void {
@@ -451,12 +451,12 @@ const styles = `
     cursor: pointer;
   }
 
-  .coordinate-grid ~ .flow-node {
+  .flow-node.is-editing {
     cursor: grab;
     touch-action: none;
   }
 
-  .coordinate-grid ~ .flow-node:active {
+  .flow-node.is-editing:active {
     cursor: grabbing;
   }
 

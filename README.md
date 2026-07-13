@@ -163,6 +163,8 @@ Unter **Anzeigen** wird der **Linienanschluss** pro Box festgelegt. Standard ist
 
 Das Koordinatenraster kann optional als Fangraster dienen. Eingeklappte Bereiche bleiben beim Bearbeiten anderer Einstellungen geschlossen. Die obere Werkzeugleiste bietet ausserdem Vorlage, Duplizieren, Rueckgaengig/Wiederholen sowie JSON-Import und -Export.
 
+Solange das Koordinatenraster aktiv ist, lassen sich die Beschreibungsboxen direkt in der Vorschau mit der Maus verschieben. Die neue X/Y-Position wird beim Loslassen automatisch gespeichert.
+
 Fuer sehr komplexe SVG-Pfade oder alle Detailoptionen kannst du jederzeit im Karteneditor auf den YAML-Modus wechseln.
 
 ## Eigene Entitaeten Verbinden
