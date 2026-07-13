@@ -30,5 +30,3 @@ jobs:
         uses: hacs/action@main
         with:
           category: plugin
-          # Description and topics are GitHub repository settings, not versioned files.
-          ignore: topics,description
