@@ -326,7 +326,8 @@ class EnergyFlowBuilderCard extends HTMLElement {
   }
 
   private entity(entityId?: string): HassEntity | undefined {
-    return entityId ? this._hass?.states[entityId] : undefined;
+    const normalized = entityId?.replace(/\u200B/g, "").trim();
+    return normalized ? this._hass?.states[normalized] : undefined;
   }
 
   private defaults(): DefaultConfig {

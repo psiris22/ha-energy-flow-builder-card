@@ -101,7 +101,9 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
       <div class="content">
         <div class="row"><label>Name <input data-node="${attr(id)}" data-key="name" value="${attr(node.name ?? "")}"></label><label>Interne ID <input data-node-id="${attr(id)}" value="${attr(id)}"></label></div>
         <label>Wert-Entity ${this.entitySelect("node", id, "entity", node.entity)}</label>
+        ${this.entityStateInfo(node.entity)}
         <label>Zweite Entity / Batterie-SoC (optional) ${this.entitySelect("node", id, "secondaryEntity", node.secondaryEntity, true)}</label>
+        ${node.secondaryEntity ? this.entityStateInfo(node.secondaryEntity) : ""}
         <div class="row three"><label>X <input type="number" data-node="${attr(id)}" data-key="x" value="${numberValue(node.x)}"></label><label>Y <input type="number" data-node="${attr(id)}" data-key="y" value="${numberValue(node.y)}"></label><label>Nachkommastellen <input type="number" min="0" max="4" data-node="${attr(id)}" data-key="decimals" value="${node.decimals ?? ""}" placeholder="auto"></label></div>
         <div class="row"><label>Breite <input type="number" data-node="${attr(id)}" data-key="labelWidth" value="${node.labelWidth ?? ""}" placeholder="Standard"></label><label>Höhe <input type="number" data-node="${attr(id)}" data-key="labelHeight" value="${node.labelHeight ?? ""}" placeholder="Standard"></label></div>
         <label>Linienanschluss ${this.nodePortSelect(id, node.connectionPort)}</label>
@@ -186,7 +188,16 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
   }
 
   private entityLabel(entityId: string): string {
-    return this._hass?.states[entityId]?.attributes?.friendly_name?.toString() ?? entityId;
+    return this._hass?.states[normalizeEntityId(entityId)]?.attributes?.friendly_name?.toString() ?? entityId;
+  }
+
+  private entityStateInfo(entityId?: string): string {
+    if (!entityId) return "";
+    const entity = this._hass?.states[normalizeEntityId(entityId)];
+    if (!entity) return '<div class="entity-status unavailable">Entity wird von Home Assistant aktuell nicht geliefert.</div>';
+    const unit = entity.attributes?.unit_of_measurement?.toString() ?? "";
+    const unavailable = ["unknown", "unavailable"].includes(entity.state);
+    return `<div class="entity-status ${unavailable ? "unavailable" : ""}">Aktueller HA-Status: ${escapeHtml(entity.state)}${unit ? ` ${escapeHtml(unit)}` : ""}</div>`;
   }
 
   private bind(): void {
@@ -301,7 +312,8 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
   private updateNode(id: string, key: string, input: HTMLInputElement | HTMLSelectElement): void {
     const nodes = { ...(this.config().nodes ?? {}) };
     const value = input instanceof HTMLInputElement && input.type === "checkbox" ? input.checked : input.value;
-    nodes[id] = { ...nodes[id], [key]: numericKey(key) && value !== "" ? Number(value) : value || undefined };
+    const normalized = (key === "entity" || key === "secondaryEntity") && typeof value === "string" ? normalizeEntityId(value) : value;
+    nodes[id] = { ...nodes[id], [key]: numericKey(key) && normalized !== "" ? Number(normalized) : normalized || undefined };
     this.commit({ ...this.config(), nodes });
   }
 
@@ -377,6 +389,7 @@ function numericKey(key: string): boolean { return ["x", "y", "decimals", "label
 function numberValue(value: number | undefined): string { return value === undefined ? "" : String(value); }
 function escapeHtml(value: string): string { return value.replace(/[&<>\"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '\"': "&quot;", "'": "&#39;" })[char] ?? char); }
 function attr(value: string): string { return escapeHtml(value); }
+function normalizeEntityId(value: string): string { return value.replace(/\u200B/g, "").trim(); }
 function isDataImage(value?: string): boolean { return Boolean(value?.startsWith("data:image/")); }
 function parsePathPoints(path: string): Array<{ x: number; y: number }> {
   const tokens = path.match(/[MLHV]|-?(?:\d*\.\d+|\d+)/g) ?? [];
@@ -465,6 +478,8 @@ const styles = `
   .check input { width:auto; margin:0; }
   .file-input { padding:7px; }
   .entity-search { border-color: color-mix(in srgb, var(--primary-color) 36%, var(--divider-color)); }
+  .entity-status { color:var(--secondary-text-color); font-size:.78rem; margin:-5px 0 8px; }
+  .entity-status.unavailable { color:var(--error-color); }
   .file-note { color:var(--secondary-text-color); font-size:.78rem; margin-top:-4px; }
   button { border:0; border-radius:4px; padding:8px 10px; background:var(--primary-color); color:var(--text-primary-color); cursor:pointer; font:inherit; }
   button.secondary { background:transparent; color:var(--primary-color); padding-left:0; }
