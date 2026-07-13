@@ -26,6 +26,7 @@ class EnergyFlowBuilderCard extends HTMLElement {
   private _config?: EnergyFlowBuilderCardConfig;
   private _hass?: HomeAssistant;
   private readonly _root = this.attachShadow({ mode: "open" });
+  private _drag?: { id: string; node: SVGGElement; offsetX: number; offsetY: number; moved: boolean };
 
   setConfig(config: EnergyFlowBuilderCardConfig): void {
     if (!config || config.type !== `custom:${CARD_TAG}`) {
@@ -177,12 +178,65 @@ class EnergyFlowBuilderCard extends HTMLElement {
   }
 
   private bindNodeActions(): void {
-    const nodes = this._root.querySelectorAll<SVGGElement>(".flow-node[data-entity]");
+    const svg = this._root.querySelector<SVGSVGElement>(".flow-svg");
+    if (!svg) return;
+    const allowDragging = Boolean(this._config?.background?.showCoordinates);
+    const nodes = this._root.querySelectorAll<SVGGElement>(".flow-node[data-node-id]");
     nodes.forEach((node) => {
       const entityId = node.dataset.entity;
-      if (!entityId) return;
-      node.addEventListener("click", () => this.openMoreInfo(entityId));
+      node.addEventListener("pointerdown", (event) => {
+        if (!allowDragging) return;
+        const point = this.svgPoint(svg, event);
+        const configNode = this._config?.nodes?.[node.dataset.nodeId ?? ""];
+        if (!configNode) return;
+        this._drag = { id: node.dataset.nodeId ?? "", node, offsetX: point.x - configNode.x, offsetY: point.y - configNode.y, moved: false };
+        node.setPointerCapture(event.pointerId);
+        event.preventDefault();
+      });
+      node.addEventListener("pointermove", (event) => this.dragNode(svg, event));
+      node.addEventListener("pointerup", (event) => {
+        const drag = this._drag;
+        if (!drag || drag.node !== node) return;
+        this._drag = undefined;
+        if (drag.moved) {
+          const point = this.svgPoint(svg, event);
+          this.publishNodePosition(drag.id, point.x - drag.offsetX, point.y - drag.offsetY);
+        } else if (entityId) {
+          this.openMoreInfo(entityId);
+        }
+      });
+      node.addEventListener("click", (event) => {
+        if (allowDragging) event.preventDefault();
+        else if (entityId) this.openMoreInfo(entityId);
+      });
     });
+  }
+
+  private dragNode(svg: SVGSVGElement, event: PointerEvent): void {
+    const drag = this._drag;
+    if (!drag) return;
+    const point = this.svgPoint(svg, event);
+    const x = Math.round(point.x - drag.offsetX);
+    const y = Math.round(point.y - drag.offsetY);
+    drag.moved = true;
+    drag.node.setAttribute("transform", `translate(${x} ${y})`);
+    const coordinates = drag.node.querySelector<SVGTextElement>(".node-coordinates");
+    if (coordinates) coordinates.textContent = `x ${x} · y ${y}`;
+  }
+
+  private publishNodePosition(id: string, x: number, y: number): void {
+    window.dispatchEvent(new CustomEvent("energy-flow-builder-node-moved", {
+      detail: { id, x: Math.round(x), y: Math.round(y) }
+    }));
+  }
+
+  private svgPoint(svg: SVGSVGElement, event: PointerEvent): { x: number; y: number } {
+    const [originX = 0, originY = 0, width = 1000, height = 1000] = (svg.getAttribute("viewBox") ?? DEFAULT_VIEW_BOX).split(/\s+/).map(Number);
+    const bounds = svg.getBoundingClientRect();
+    return {
+      x: originX + ((event.clientX - bounds.left) / bounds.width) * width,
+      y: originY + ((event.clientY - bounds.top) / bounds.height) * height
+    };
   }
 
   private openMoreInfo(entityId: string): void {
@@ -328,6 +382,15 @@ const styles = `
 
   .flow-node {
     cursor: pointer;
+  }
+
+  .coordinate-grid ~ .flow-node {
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .coordinate-grid ~ .flow-node:active {
+    cursor: grabbing;
   }
 
   .flow-node.is-idle {

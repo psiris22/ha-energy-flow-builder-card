@@ -7,6 +7,22 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
   private _hass?: HomeAssistant;
   private _entitySignature = "";
   private readonly _root = this.attachShadow({ mode: "open" });
+  private readonly _onNodeMoved = (event: Event) => {
+    const detail = (event as CustomEvent<{ id?: string; x?: number; y?: number }>).detail;
+    if (!detail?.id || !Number.isFinite(detail.x) || !Number.isFinite(detail.y)) return;
+    const nodes = { ...(this.config().nodes ?? {}) };
+    if (!nodes[detail.id]) return;
+    nodes[detail.id] = { ...nodes[detail.id], x: detail.x!, y: detail.y! };
+    this.commit({ ...this.config(), nodes });
+  };
+
+  connectedCallback(): void {
+    window.addEventListener("energy-flow-builder-node-moved", this._onNodeMoved);
+  }
+
+  disconnectedCallback(): void {
+    window.removeEventListener("energy-flow-builder-node-moved", this._onNodeMoved);
+  }
 
   setConfig(config: EnergyFlowBuilderCardConfig): void {
     this._config = structuredClone(config);

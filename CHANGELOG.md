@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2
+
+- Added drag-and-drop positioning for nodes directly in the coordinate preview.
+
 ## 0.2.1
 
 - Fixed the visual editor losing focus whenever Home Assistant updates entity states.
