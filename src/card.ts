@@ -47,11 +47,11 @@ class EnergyFlowBuilderCard extends HTMLElement {
     return 5;
   }
 
-  getConfigElement(): HTMLElement {
+  static getConfigElement(): HTMLElement {
     return document.createElement("energy-flow-builder-card-editor");
   }
 
-  getStubConfig(): EnergyFlowBuilderCardConfig {
+  static getStubConfig(): EnergyFlowBuilderCardConfig {
     return {
       type: `custom:${CARD_TAG}`,
       title: "Energiefluss",

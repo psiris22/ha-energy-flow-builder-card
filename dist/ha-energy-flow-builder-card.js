@@ -179,10 +179,10 @@ class A extends HTMLElement {
   getCardSize() {
     return 5;
   }
-  getConfigElement() {
+  static getConfigElement() {
     return document.createElement("energy-flow-builder-card-editor");
   }
-  getStubConfig() {
+  static getStubConfig() {
     return {
       type: `custom:${g}`,
       title: "Energiefluss",
