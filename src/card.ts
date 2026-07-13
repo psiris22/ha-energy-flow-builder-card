@@ -185,7 +185,10 @@ class EnergyFlowBuilderCard extends HTMLElement {
       node.style?.background ? `--node-background:${escapeAttr(node.style.background)}` : "",
       node.style?.border ? `--node-border:${escapeAttr(node.style.border)}` : "",
       node.style?.titleColor ? `--node-title:${escapeAttr(node.style.titleColor)}` : "",
-      node.style?.valueColor ? `--node-value:${escapeAttr(node.style.valueColor)}` : ""
+      node.style?.valueColor ? `--node-value:${escapeAttr(node.style.valueColor)}` : "",
+      node.style?.titleSize ? `--node-title-size:${node.style.titleSize}px` : "",
+      node.style?.valueSize ? `--node-value-size:${node.style.valueSize}px` : "",
+      node.style?.secondarySize ? `--node-secondary-size:${node.style.secondarySize}px` : ""
     ].filter(Boolean).join(";");
 
     return `
@@ -491,19 +494,19 @@ const styles = `
 
   .node-title {
     fill: var(--node-title, var(--secondary-text-color));
-    font-size: 18px;
+    font-size: var(--node-title-size, 18px);
     font-weight: 700;
   }
 
   .node-value {
     fill: var(--node-value, var(--primary-text-color));
-    font-size: 24px;
+    font-size: var(--node-value-size, 24px);
     font-weight: 800;
   }
 
   .node-secondary {
     fill: var(--secondary-text-color);
-    font-size: 16px;
+    font-size: var(--node-secondary-size, 16px);
     text-anchor: end;
     font-weight: 700;
   }

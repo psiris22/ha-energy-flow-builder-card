@@ -111,6 +111,7 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
           <summary>Darstellung</summary>
           <div class="row"><label>Hintergrund <input data-node-style="${attr(id)}" data-key="background" value="${attr(node.style?.background ?? "")}" placeholder="#182432"></label><label>Rahmen <input data-node-style="${attr(id)}" data-key="border" value="${attr(node.style?.border ?? "")}" placeholder="#16a6d9"></label></div>
           <div class="row"><label>Titelfarbe <input data-node-style="${attr(id)}" data-key="titleColor" value="${attr(node.style?.titleColor ?? "")}" placeholder="Standard"></label><label>Wertfarbe <input data-node-style="${attr(id)}" data-key="valueColor" value="${attr(node.style?.valueColor ?? "")}" placeholder="Standard"></label></div>
+          <div class="row three"><label>Titelgröße <input type="number" min="8" max="72" data-node-style="${attr(id)}" data-key="titleSize" value="${node.style?.titleSize ?? ""}" placeholder="18"></label><label>Wertgröße <input type="number" min="8" max="96" data-node-style="${attr(id)}" data-key="valueSize" value="${node.style?.valueSize ?? ""}" placeholder="24"></label><label>Zusatzwertgröße <input type="number" min="8" max="72" data-node-style="${attr(id)}" data-key="secondarySize" value="${node.style?.secondarySize ?? ""}" placeholder="16"></label></div>
           <label>Eckenradius <input type="number" min="0" data-node-style="${attr(id)}" data-key="radius" value="${node.style?.radius ?? ""}" placeholder="16"></label>
         </details>
         <label class="check"><input type="checkbox" data-node="${attr(id)}" data-key="hide" ${node.hide ? "checked" : ""}> Anzeige ausblenden</label>
@@ -340,7 +341,8 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
     const nodes = { ...(this.config().nodes ?? {}) };
     const node = nodes[id];
     if (!node) return;
-    const value = key === "radius" && input.value !== "" ? Number(input.value) : input.value || undefined;
+    const numeric = ["radius", "titleSize", "valueSize", "secondarySize"].includes(key);
+    const value = numeric && input.value !== "" ? Number(input.value) : input.value || undefined;
     nodes[id] = { ...node, style: { ...node.style, [key]: value } };
     this.commit({ ...this.config(), nodes });
   }

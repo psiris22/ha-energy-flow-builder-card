@@ -273,7 +273,7 @@ Nodes sind frei benannt. `solar`, `battery` oder `grid` sind keine Pflichtnamen.
 | `labelWidth`, `labelHeight` | Eigene Label-Groesse. |
 | `hide` | Node ausblenden. |
 | `connectionPort` | Standard-Linienanschluss der Box: `bottom` (Standard), `top`, `left` oder `right`. |
-| `style` | Optionales Styling mit Hintergrund, Rahmen, Textfarben und Eckenradius. |
+| `style` | Optionales Styling mit Hintergrund, Rahmen, Textfarben, Schriftgrößen und Eckenradius. |
 
 ### `lines`
 

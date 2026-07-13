@@ -61,6 +61,9 @@ export interface EnergyFlowNodeConfig {
     border?: string;
     titleColor?: string;
     valueColor?: string;
+    titleSize?: number;
+    valueSize?: number;
+    secondarySize?: number;
     radius?: number;
   };
 }
