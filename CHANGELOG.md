@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- Fixed the visual editor losing focus whenever Home Assistant updates entity states.
+
 ## 0.2.0
 
 - Added the Lovelace visual editor with local Home Assistant entity selection.

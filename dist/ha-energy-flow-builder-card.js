@@ -1,13 +1,15 @@
-const M = "energy-flow-builder-card-editor";
-class S extends HTMLElement {
+const C = "energy-flow-builder-card-editor";
+class M extends HTMLElement {
   constructor() {
-    super(...arguments), this._root = this.attachShadow({ mode: "open" });
+    super(...arguments), this._entitySignature = "", this._root = this.attachShadow({ mode: "open" });
   }
   setConfig(e) {
     this._config = structuredClone(e), this.render();
   }
   set hass(e) {
-    this._hass = e, this.render();
+    this._hass = e;
+    const t = Object.keys(e.states).sort().join("|");
+    t !== this._entitySignature && (this._entitySignature = t, this.render());
   }
   render() {
     var o, i, r, n, u, c;
@@ -65,8 +67,8 @@ class S extends HTMLElement {
   entitySelect(e, t, a, o, i = !1) {
     var u;
     const r = Object.entries(((u = this._hass) == null ? void 0 : u.states) ?? {}).filter(([, c]) => !!c).sort(([c, l], [h, p]) => {
-      var g, y, v, $;
-      return (((y = (g = l == null ? void 0 : l.attributes) == null ? void 0 : g.friendly_name) == null ? void 0 : y.toString()) ?? c).localeCompare((($ = (v = p == null ? void 0 : p.attributes) == null ? void 0 : v.friendly_name) == null ? void 0 : $.toString()) ?? h);
+      var m, y, v, $;
+      return (((y = (m = l == null ? void 0 : l.attributes) == null ? void 0 : m.friendly_name) == null ? void 0 : y.toString()) ?? c).localeCompare((($ = (v = p == null ? void 0 : p.attributes) == null ? void 0 : v.friendly_name) == null ? void 0 : $.toString()) ?? h);
     });
     return `<select ${e === "node" ? `data-node="${d(t)}"` : `data-line="${d(t)}"`} data-key="${a}"><option value="">${i ? "Keine zweite Entity" : "Entity auswählen"}</option>${r.map(([c, l]) => {
       var h, p;
@@ -104,7 +106,7 @@ class S extends HTMLElement {
   }
   updateNode(e, t, a) {
     const o = { ...this.config().nodes ?? {} }, i = a instanceof HTMLInputElement && a.type === "checkbox" ? a.checked : a.value;
-    o[e] = { ...o[e], [t]: k(t) && i !== "" ? Number(i) : i || void 0 }, this.commit({ ...this.config(), nodes: o });
+    o[e] = { ...o[e], [t]: x(t) && i !== "" ? Number(i) : i || void 0 }, this.commit({ ...this.config(), nodes: o });
   }
   renameNode(e, t) {
     var r;
@@ -118,7 +120,7 @@ class S extends HTMLElement {
   }
   updateLine(e, t, a) {
     const o = this.config(), i = [...o.lines ?? []], r = a instanceof HTMLInputElement && a.type === "checkbox" ? a.checked : a.value;
-    i[e] = { ...i[e], [t]: k(t) && r !== "" ? Number(r) : r || void 0 }, this.commit({ ...o, lines: i });
+    i[e] = { ...i[e], [t]: x(t) && r !== "" ? Number(r) : r || void 0 }, this.commit({ ...o, lines: i });
   }
   config() {
     return this._config ?? { type: "custom:energy-flow-builder-card" };
@@ -127,7 +129,7 @@ class S extends HTMLElement {
     this._config = e, this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: e }, bubbles: !0, composed: !0 })), this.render();
   }
 }
-function k(s) {
+function x(s) {
   return ["x", "y", "decimals", "labelWidth", "labelHeight", "width", "activeAbove"].includes(s);
 }
 function E(s) {
@@ -167,8 +169,8 @@ const N = `
   button.danger { background:transparent; color:var(--error-color); padding-left:0; }
   @media (max-width: 420px) { .row, .three { grid-template-columns:1fr; gap:0; } }
 `;
-customElements.define(M, S);
-const b = "energy-flow-builder-card", z = "0 0 1000 1000", C = {
+customElements.define(C, M);
+const b = "energy-flow-builder-card", z = "0 0 1000 1000", S = {
   activeAbove: 10,
   lineWidth: 7,
   lineColor: "#16a6d9",
@@ -187,7 +189,7 @@ class A extends HTMLElement {
       throw new Error(`Expected type custom:${b}`);
     this._config = {
       ...e,
-      defaults: { ...C, ...e.defaults ?? {} }
+      defaults: { ...S, ...e.defaults ?? {} }
     }, this.render();
   }
   set hass(e) {
@@ -222,10 +224,10 @@ class A extends HTMLElement {
     this._root.innerHTML = `
       <style>${L}</style>
       <ha-card>
-        ${e.title ? `<div class="card-title">${x(e.title)}</div>` : ""}
+        ${e.title ? `<div class="card-title">${k(e.title)}</div>` : ""}
         <div class="stage" style="${this.stageStyle(e)}">
-          ${(r = e.background) != null && r.image ? `<img class="background" src="${m(e.background.image)}" alt="">` : ""}
-          <svg class="flow-svg" viewBox="${m(t)}" preserveAspectRatio="xMidYMid meet" role="img">
+          ${(r = e.background) != null && r.image ? `<img class="background" src="${g(e.background.image)}" alt="">` : ""}
+          <svg class="flow-svg" viewBox="${g(t)}" preserveAspectRatio="xMidYMid meet" role="img">
             <defs>
               <filter id="efb-glow" x="-40%" y="-40%" width="180%" height="180%">
                 <feGaussianBlur stdDeviation="5" result="glow"></feGaussianBlur>
@@ -253,11 +255,11 @@ class A extends HTMLElement {
     if (!n && e.hideWhenInactive) return "";
     const u = o < 0 && e.pathNegative ? e.pathNegative : o >= 0 && e.pathPositive ? e.pathPositive : e.path;
     if (!u) return "";
-    const c = B(e.id), l = e.width ?? t.lineWidth, h = e.duration ?? H(i, t.duration), p = e.color ?? t.lineColor, g = e.trackColor ?? t.trackColor, y = e.pulseColor ?? t.pulseColor, v = o < 0 ? "reverse" : "normal";
+    const c = B(e.id), l = e.width ?? t.lineWidth, h = e.duration ?? H(i, t.duration), p = e.color ?? t.lineColor, m = e.trackColor ?? t.trackColor, y = e.pulseColor ?? t.pulseColor, v = o < 0 ? "reverse" : "normal";
     return `
-      <g class="flow-line ${n ? "is-active" : "is-idle"}" style="--line-width:${l};--duration:${h}s;--direction:${v};--flow-opacity:${n ? "1" : ".38"};--line-color:${m(p)};--track-color:${m(g)};--pulse-color:${m(y)}">
-        <path id="${c}" class="flow-track" d="${m(u)}"></path>
-        <path class="flow-main" d="${m(u)}"></path>
+      <g class="flow-line ${n ? "is-active" : "is-idle"}" style="--line-width:${l};--duration:${h}s;--direction:${v};--flow-opacity:${n ? "1" : ".38"};--line-color:${g(p)};--track-color:${g(m)};--pulse-color:${g(y)}">
+        <path id="${c}" class="flow-track" d="${g(u)}"></path>
+        <path class="flow-main" d="${g(u)}"></path>
         ${n ? `
           <circle class="flow-pulse primary" r="${Math.max(5, l * 1.3)}">
             <animateMotion dur="${h}s" repeatCount="indefinite" calcMode="paced">
@@ -278,10 +280,10 @@ class A extends HTMLElement {
     return `<g class="coordinate-grid">${i.map((n) => `<path d="M${n} 0 V${o}"></path><text x="${n + 10}" y="28">${n}</text>`).join("")}${r.map((n) => `<path d="M0 ${n} H${a}"></path>${n ? `<text x="10" y="${n - 8}">${n}</text>` : ""}`).join("")}</g>`;
   }
   renderNode(e, t, a) {
-    var p, g;
-    const o = this.defaults(), i = this.entity(t.entity), r = this.formatEntity(i, t), n = t.secondaryEntity ? this.formatEntity(this.entity(t.secondaryEntity), { ...t, stateType: "raw" }) : "", u = t.name ?? ((g = (p = i == null ? void 0 : i.attributes) == null ? void 0 : p.friendly_name) == null ? void 0 : g.toString()) ?? e, c = t.labelWidth ?? o.labelWidth, l = t.labelHeight ?? o.labelHeight;
+    var p, m;
+    const o = this.defaults(), i = this.entity(t.entity), r = this.formatEntity(i, t), n = t.secondaryEntity ? this.formatEntity(this.entity(t.secondaryEntity), { ...t, stateType: "raw" }) : "", u = t.name ?? ((m = (p = i == null ? void 0 : i.attributes) == null ? void 0 : p.friendly_name) == null ? void 0 : m.toString()) ?? e, c = t.labelWidth ?? o.labelWidth, l = t.labelHeight ?? o.labelHeight;
     return `
-      <g class="flow-node ${Math.abs(this.entityNumber(t.entity)) > (t.activeAbove ?? o.activeAbove) ? "is-active" : "is-idle"}" data-node-id="${m(e)}" data-entity="${m(t.entity ?? "")}" transform="translate(${t.x} ${t.y})">
+      <g class="flow-node ${Math.abs(this.entityNumber(t.entity)) > (t.activeAbove ?? o.activeAbove) ? "is-active" : "is-idle"}" data-node-id="${g(e)}" data-entity="${g(t.entity ?? "")}" transform="translate(${t.x} ${t.y})">
         <rect class="node-box" width="${c}" height="${l}" rx="16" ry="16"></rect>
         <text class="node-title" x="18" y="32">${w(u)}</text>
         <text class="node-value" x="18" y="61">${w(r)}</text>
@@ -310,7 +312,7 @@ class A extends HTMLElement {
   }
   defaults() {
     var e;
-    return { ...C, ...((e = this._config) == null ? void 0 : e.defaults) ?? {} };
+    return { ...S, ...((e = this._config) == null ? void 0 : e.defaults) ?? {} };
   }
   entityNumber(e) {
     const t = this.entity(e), a = Number(t == null ? void 0 : t.state);
@@ -471,14 +473,14 @@ function H(s, e) {
 function B(s) {
   return `efb-${s.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 }
-function x(s) {
+function k(s) {
   return s.replace(/[&<>"']/g, (e) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[e] ?? e);
 }
-function m(s) {
-  return x(s);
+function g(s) {
+  return k(s);
 }
 function w(s) {
-  return x(s);
+  return k(s);
 }
 customElements.define(b, A);
 window.customCards = window.customCards ?? [];

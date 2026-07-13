@@ -5,6 +5,7 @@ const EDITOR_TAG = "energy-flow-builder-card-editor";
 class EnergyFlowBuilderCardEditor extends HTMLElement {
   private _config?: EnergyFlowBuilderCardConfig;
   private _hass?: HomeAssistant;
+  private _entitySignature = "";
   private readonly _root = this.attachShadow({ mode: "open" });
 
   setConfig(config: EnergyFlowBuilderCardConfig): void {
@@ -14,7 +15,13 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
 
   set hass(hass: HomeAssistant) {
     this._hass = hass;
-    this.render();
+    // Home Assistant updates entity states frequently. Re-rendering here would
+    // replace active inputs and makes the editor impossible to use.
+    const signature = Object.keys(hass.states).sort().join("|");
+    if (signature !== this._entitySignature) {
+      this._entitySignature = signature;
+      this.render();
+    }
   }
 
   private render(): void {
