@@ -90,7 +90,8 @@ class EnergyFlowBuilderCard extends HTMLElement {
               </filter>
             </defs>
             ${lines.map((line) => this.renderLine(line)).join("")}
-            ${nodes.map(([id, node]) => this.renderNode(id, node)).join("")}
+            ${config.background?.showCoordinates ? this.renderCoordinateGrid(viewBox) : ""}
+            ${nodes.map(([id, node]) => this.renderNode(id, node, Boolean(config.background?.showCoordinates))).join("")}
           </svg>
         </div>
       </ha-card>
@@ -146,7 +147,15 @@ class EnergyFlowBuilderCard extends HTMLElement {
     `;
   }
 
-  private renderNode(id: string, node: EnergyFlowNodeConfig): string {
+  private renderCoordinateGrid(viewBox: string): string {
+    const values = viewBox.trim().split(/\s+/).map(Number);
+    const [, , width = 1000, height = 1000] = values;
+    const xTicks = [0, .25, .5, .75, 1].map((part) => Math.round(width * part));
+    const yTicks = [0, .25, .5, .75, 1].map((part) => Math.round(height * part));
+    return `<g class="coordinate-grid">${xTicks.map((x) => `<path d="M${x} 0 V${height}"></path><text x="${x + 10}" y="28">${x}</text>`).join("")}${yTicks.map((y) => `<path d="M0 ${y} H${width}"></path>${y ? `<text x="10" y="${y - 8}">${y}</text>` : ""}`).join("")}</g>`;
+  }
+
+  private renderNode(id: string, node: EnergyFlowNodeConfig, showCoordinates: boolean): string {
     const defaults = this.defaults();
     const entity = this.entity(node.entity);
     const primary = this.formatEntity(entity, node);
@@ -162,6 +171,7 @@ class EnergyFlowBuilderCard extends HTMLElement {
         <text class="node-title" x="18" y="32">${escapeSvgText(name)}</text>
         <text class="node-value" x="18" y="61">${escapeSvgText(primary)}</text>
         ${secondary ? `<text class="node-secondary" x="${width - 18}" y="32">${escapeSvgText(secondary)}</text>` : ""}
+        ${showCoordinates ? `<text class="node-coordinates" x="0" y="${height + 21}">x ${node.x} · y ${node.y}</text>` : ""}
       </g>
     `;
   }
@@ -289,6 +299,24 @@ const styles = `
 
   .flow-pulse.secondary {
     opacity: .68;
+  }
+
+  .coordinate-grid path {
+    stroke: rgba(22, 166, 217, .38);
+    stroke-width: 1;
+    stroke-dasharray: 6 9;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .coordinate-grid text,
+  .node-coordinates {
+    fill: #056b90;
+    font-size: 16px;
+    font-weight: 700;
+    paint-order: stroke;
+    stroke: rgba(255, 255, 255, .88);
+    stroke-width: 4px;
+    stroke-linejoin: round;
   }
 
   .node-box {

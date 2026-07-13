@@ -1,5 +1,5 @@
-const S = "energy-flow-builder-card-editor";
-class N extends HTMLElement {
+const M = "energy-flow-builder-card-editor";
+class S extends HTMLElement {
   constructor() {
     super(...arguments), this._root = this.attachShadow({ mode: "open" });
   }
@@ -10,38 +10,42 @@ class N extends HTMLElement {
     this._hass = e, this.render();
   }
   render() {
-    var o, i, n;
+    var o, i, r, n, u, c;
     if (!this._config) return;
     const e = this._config, t = Object.entries(e.nodes ?? {}), a = e.lines ?? [];
     this._root.innerHTML = `
-      <style>${M}</style>
+      <style>${N}</style>
       <section>
         <div class="intro">Wähle deine lokalen Entitäten und passe die Positionen an. Die Vorschau aktualisiert sich sofort.</div>
         <div class="section">
-          <label>Überschrift <input data-path="title" value="${s(e.title ?? "")}" placeholder="Energiefluss"></label>
+          <label>Überschrift <input data-path="title" value="${d(e.title ?? "")}" placeholder="Energiefluss"></label>
           <div class="row">
-            <label>Hintergrundfarbe <input data-path="background.color" value="${s(((o = e.background) == null ? void 0 : o.color) ?? "")}" placeholder="#dbeafe"></label>
-            <label>Koordinatenraum <input data-path="background.viewBox" value="${s(((i = e.background) == null ? void 0 : i.viewBox) ?? "0 0 1073 1466")}"></label>
+            <label>Hintergrundfarbe <input data-path="background.color" value="${d(((o = e.background) == null ? void 0 : o.color) ?? "")}" placeholder="#dbeafe"></label>
+            <label>Koordinatenraum <input data-path="background.viewBox" value="${d(((i = e.background) == null ? void 0 : i.viewBox) ?? "0 0 1073 1466")}"></label>
           </div>
-          <label>Hintergrundbild (optional) <input data-path="background.image" value="${s(((n = e.background) == null ? void 0 : n.image) ?? "")}" placeholder="/local/meine-grafik.png"></label>
+          <label>Hintergrundbild per Pfad <input data-path="background.image" value="${d(_((r = e.background) == null ? void 0 : r.image) ? "" : ((n = e.background) == null ? void 0 : n.image) ?? "")}" placeholder="/local/meine-grafik.png"></label>
+          <label>Bild vom Computer auswählen <input class="file-input" type="file" accept="image/png,image/jpeg,image/webp" data-action="select-image"></label>
+          <div class="file-note">Das Bild wird direkt in dieser Karten-Konfiguration gespeichert.</div>
+          ${_((u = e.background) == null ? void 0 : u.image) ? '<button class="secondary" type="button" data-action="clear-image">Ausgewähltes Bild entfernen</button>' : ""}
+          <label class="check"><input type="checkbox" data-path="background.showCoordinates" ${(c = e.background) != null && c.showCoordinates ? "checked" : ""}> Koordinatenraster und X/Y-Werte in der Vorschau zeigen</label>
         </div>
         <div class="heading"><h3>Anzeigen</h3><button type="button" data-action="add-node">Anzeige hinzufügen</button></div>
-        ${t.length ? t.map(([l, d]) => this.nodeForm(l, d)).join("") : "<p class=empty>Noch keine Anzeigen angelegt.</p>"}
+        ${t.length ? t.map(([l, h]) => this.nodeForm(l, h)).join("") : "<p class=empty>Noch keine Anzeigen angelegt.</p>"}
         <div class="heading"><h3>Linien</h3><button type="button" data-action="add-line">Linie hinzufügen</button></div>
-        ${a.length ? a.map((l, d) => this.lineForm(l, d)).join("") : "<p class=empty>Linien können später per SVG-Pfad ergänzt werden.</p>"}
+        ${a.length ? a.map((l, h) => this.lineForm(l, h)).join("") : "<p class=empty>Linien können später per SVG-Pfad ergänzt werden.</p>"}
       </section>`, this.bind();
   }
   nodeForm(e, t) {
     return `<details class="item" open>
       <summary>${f(t.name ?? e)} <span>${f(t.entity ?? "Keine Entity")}</span></summary>
       <div class="content">
-        <div class="row"><label>Name <input data-node="${s(e)}" data-key="name" value="${s(t.name ?? "")}"></label><label>Interne ID <input data-node-id="${s(e)}" value="${s(e)}"></label></div>
+        <div class="row"><label>Name <input data-node="${d(e)}" data-key="name" value="${d(t.name ?? "")}"></label><label>Interne ID <input data-node-id="${d(e)}" value="${d(e)}"></label></div>
         <label>Wert-Entity ${this.entitySelect("node", e, "entity", t.entity)}</label>
         <label>Zweite Entity (optional) ${this.entitySelect("node", e, "secondaryEntity", t.secondaryEntity, !0)}</label>
-        <div class="row three"><label>X <input type="number" data-node="${s(e)}" data-key="x" value="${E(t.x)}"></label><label>Y <input type="number" data-node="${s(e)}" data-key="y" value="${E(t.y)}"></label><label>Nachkommastellen <input type="number" min="0" max="4" data-node="${s(e)}" data-key="decimals" value="${t.decimals ?? ""}" placeholder="auto"></label></div>
-        <div class="row"><label>Breite <input type="number" data-node="${s(e)}" data-key="labelWidth" value="${t.labelWidth ?? ""}" placeholder="Standard"></label><label>Höhe <input type="number" data-node="${s(e)}" data-key="labelHeight" value="${t.labelHeight ?? ""}" placeholder="Standard"></label></div>
-        <label class="check"><input type="checkbox" data-node="${s(e)}" data-key="hide" ${t.hide ? "checked" : ""}> Anzeige ausblenden</label>
-        <button class="danger" type="button" data-action="remove-node" data-id="${s(e)}">Anzeige entfernen</button>
+        <div class="row three"><label>X <input type="number" data-node="${d(e)}" data-key="x" value="${E(t.x)}"></label><label>Y <input type="number" data-node="${d(e)}" data-key="y" value="${E(t.y)}"></label><label>Nachkommastellen <input type="number" min="0" max="4" data-node="${d(e)}" data-key="decimals" value="${t.decimals ?? ""}" placeholder="auto"></label></div>
+        <div class="row"><label>Breite <input type="number" data-node="${d(e)}" data-key="labelWidth" value="${t.labelWidth ?? ""}" placeholder="Standard"></label><label>Höhe <input type="number" data-node="${d(e)}" data-key="labelHeight" value="${t.labelHeight ?? ""}" placeholder="Standard"></label></div>
+        <label class="check"><input type="checkbox" data-node="${d(e)}" data-key="hide" ${t.hide ? "checked" : ""}> Anzeige ausblenden</label>
+        <button class="danger" type="button" data-action="remove-node" data-id="${d(e)}">Anzeige entfernen</button>
       </div>
     </details>`;
   }
@@ -49,56 +53,63 @@ class N extends HTMLElement {
     return `<details class="item">
       <summary>${f(e.id || `Linie ${t + 1}`)} <span>${f(e.entity ?? "Keine Entity")}</span></summary>
       <div class="content">
-        <div class="row"><label>ID <input data-line="${t}" data-key="id" value="${s(e.id)}"></label><label>Breite <input type="number" data-line="${t}" data-key="width" value="${e.width ?? ""}" placeholder="Standard"></label></div>
+        <div class="row"><label>ID <input data-line="${t}" data-key="id" value="${d(e.id)}"></label><label>Breite <input type="number" data-line="${t}" data-key="width" value="${e.width ?? ""}" placeholder="Standard"></label></div>
         <label>Steuernde Entity ${this.entitySelect("line", String(t), "entity", e.entity)}</label>
-        <label>SVG-Pfad <input data-line="${t}" data-key="path" value="${s(e.path ?? "")}" placeholder="M600 500 V1100"></label>
-        <div class="row"><label>Farbe <input data-line="${t}" data-key="color" value="${s(e.color ?? "")}" placeholder="#16a6d9"></label><label>Schwelle <input type="number" data-line="${t}" data-key="activeAbove" value="${e.activeAbove ?? ""}" placeholder="Standard"></label></div>
+        <label>SVG-Pfad <input data-line="${t}" data-key="path" value="${d(e.path ?? "")}" placeholder="M600 500 V1100"></label>
+        <div class="row"><label>Farbe <input data-line="${t}" data-key="color" value="${d(e.color ?? "")}" placeholder="#16a6d9"></label><label>Schwelle <input type="number" data-line="${t}" data-key="activeAbove" value="${e.activeAbove ?? ""}" placeholder="Standard"></label></div>
         <label class="check"><input type="checkbox" data-line="${t}" data-key="invert" ${e.invert ? "checked" : ""}> Vorzeichen umdrehen</label>
         <button class="danger" type="button" data-action="remove-line" data-index="${t}">Linie entfernen</button>
       </div>
     </details>`;
   }
   entitySelect(e, t, a, o, i = !1) {
-    var d;
-    const n = Object.entries(((d = this._hass) == null ? void 0 : d.states) ?? {}).filter(([, c]) => !!c).sort(([c, u], [h, p]) => {
-      var b, y, v, $;
-      return (((y = (b = u == null ? void 0 : u.attributes) == null ? void 0 : b.friendly_name) == null ? void 0 : y.toString()) ?? c).localeCompare((($ = (v = p == null ? void 0 : p.attributes) == null ? void 0 : v.friendly_name) == null ? void 0 : $.toString()) ?? h);
+    var u;
+    const r = Object.entries(((u = this._hass) == null ? void 0 : u.states) ?? {}).filter(([, c]) => !!c).sort(([c, l], [h, p]) => {
+      var g, y, v, $;
+      return (((y = (g = l == null ? void 0 : l.attributes) == null ? void 0 : g.friendly_name) == null ? void 0 : y.toString()) ?? c).localeCompare((($ = (v = p == null ? void 0 : p.attributes) == null ? void 0 : v.friendly_name) == null ? void 0 : $.toString()) ?? h);
     });
-    return `<select ${e === "node" ? `data-node="${s(t)}"` : `data-line="${s(t)}"`} data-key="${a}"><option value="">${i ? "Keine zweite Entity" : "Entity auswählen"}</option>${n.map(([c, u]) => {
+    return `<select ${e === "node" ? `data-node="${d(t)}"` : `data-line="${d(t)}"`} data-key="${a}"><option value="">${i ? "Keine zweite Entity" : "Entity auswählen"}</option>${r.map(([c, l]) => {
       var h, p;
-      return `<option value="${s(c)}" ${c === o ? "selected" : ""}>${f(((p = (h = u == null ? void 0 : u.attributes) == null ? void 0 : h.friendly_name) == null ? void 0 : p.toString()) ?? c)} (${f(c)})</option>`;
+      return `<option value="${d(c)}" ${c === o ? "selected" : ""}>${f(((p = (h = l == null ? void 0 : l.attributes) == null ? void 0 : h.friendly_name) == null ? void 0 : p.toString()) ?? c)} (${f(c)})</option>`;
     }).join("")}</select>`;
   }
   bind() {
-    this._root.querySelectorAll("input[data-path], select[data-path]").forEach((e) => e.addEventListener("change", () => this.updatePath(e.dataset.path, e.value))), this._root.querySelectorAll("[data-node][data-key]").forEach((e) => e.addEventListener("change", () => this.updateNode(e.dataset.node, e.dataset.key, e))), this._root.querySelectorAll("input[data-node-id]").forEach((e) => e.addEventListener("change", () => this.renameNode(e.dataset.nodeId, e.value))), this._root.querySelectorAll("[data-line][data-key]").forEach((e) => e.addEventListener("change", () => this.updateLine(Number(e.dataset.line), e.dataset.key, e))), this._root.querySelectorAll("button[data-action]").forEach((e) => e.addEventListener("click", () => this.action(e)));
+    this._root.querySelectorAll("input[data-path], select[data-path]").forEach((e) => e.addEventListener("change", () => this.updatePath(e.dataset.path, e instanceof HTMLInputElement && e.type === "checkbox" ? e.checked : e.value))), this._root.querySelectorAll("[data-node][data-key]").forEach((e) => e.addEventListener("change", () => this.updateNode(e.dataset.node, e.dataset.key, e))), this._root.querySelectorAll("input[data-node-id]").forEach((e) => e.addEventListener("change", () => this.renameNode(e.dataset.nodeId, e.value))), this._root.querySelectorAll("[data-line][data-key]").forEach((e) => e.addEventListener("change", () => this.updateLine(Number(e.dataset.line), e.dataset.key, e))), this._root.querySelectorAll("button[data-action]").forEach((e) => e.addEventListener("click", () => this.action(e))), this._root.querySelectorAll('input[data-action="select-image"]').forEach((e) => e.addEventListener("change", () => this.selectImage(e)));
   }
   action(e) {
     var a;
     const t = this.config();
     if (e.dataset.action === "add-node") {
       const o = { ...t.nodes ?? {} };
-      let i = "anzeige", n = 2;
-      for (; o[i]; ) i = `anzeige_${n++}`;
+      let i = "anzeige", r = 2;
+      for (; o[i]; ) i = `anzeige_${r++}`;
       o[i] = { x: 100, y: 100, name: "Neue Anzeige" }, this.commit({ ...t, nodes: o });
     }
     if (e.dataset.action === "remove-node" && e.dataset.id) {
       const o = { ...t.nodes ?? {} };
       delete o[e.dataset.id], this.commit({ ...t, nodes: o });
     }
-    e.dataset.action === "add-line" && this.commit({ ...t, lines: [...t.lines ?? [], { id: `linie_${(((a = t.lines) == null ? void 0 : a.length) ?? 0) + 1}`, path: "M100 100 H300" }] }), e.dataset.action === "remove-line" && this.commit({ ...t, lines: (t.lines ?? []).filter((o, i) => i !== Number(e.dataset.index)) });
+    e.dataset.action === "add-line" && this.commit({ ...t, lines: [...t.lines ?? [], { id: `linie_${(((a = t.lines) == null ? void 0 : a.length) ?? 0) + 1}`, path: "M100 100 H300" }] }), e.dataset.action === "remove-line" && this.commit({ ...t, lines: (t.lines ?? []).filter((o, i) => i !== Number(e.dataset.index)) }), e.dataset.action === "clear-image" && this.updatePath("background.image", "");
+  }
+  selectImage(e) {
+    var o;
+    const t = (o = e.files) == null ? void 0 : o[0];
+    if (!t) return;
+    const a = new FileReader();
+    a.addEventListener("load", () => this.updatePath("background.image", String(a.result ?? ""))), a.readAsDataURL(t);
   }
   updatePath(e, t) {
-    const a = this.config(), [o, i] = e.split("."), n = o === "background" ? a.background ?? {} : {};
-    this.commit({ ...a, [o]: { ...n, [i]: t || void 0 } });
+    const a = this.config(), [o, i] = e.split("."), r = o === "background" ? a.background ?? {} : {};
+    this.commit({ ...a, [o]: { ...r, [i]: t || void 0 } });
   }
   updateNode(e, t, a) {
     const o = { ...this.config().nodes ?? {} }, i = a instanceof HTMLInputElement && a.type === "checkbox" ? a.checked : a.value;
     o[e] = { ...o[e], [t]: k(t) && i !== "" ? Number(i) : i || void 0 }, this.commit({ ...this.config(), nodes: o });
   }
   renameNode(e, t) {
-    var n;
+    var r;
     const a = t.trim().replace(/[^a-zA-Z0-9_-]/g, "_");
-    if (!a || a === e || (n = this.config().nodes) != null && n[a]) {
+    if (!a || a === e || (r = this.config().nodes) != null && r[a]) {
       this.render();
       return;
     }
@@ -106,8 +117,8 @@ class N extends HTMLElement {
     delete o[e], o[a] = i, this.commit({ ...this.config(), nodes: o });
   }
   updateLine(e, t, a) {
-    const o = this.config(), i = [...o.lines ?? []], n = a instanceof HTMLInputElement && a.type === "checkbox" ? a.checked : a.value;
-    i[e] = { ...i[e], [t]: k(t) && n !== "" ? Number(n) : n || void 0 }, this.commit({ ...o, lines: i });
+    const o = this.config(), i = [...o.lines ?? []], r = a instanceof HTMLInputElement && a.type === "checkbox" ? a.checked : a.value;
+    i[e] = { ...i[e], [t]: k(t) && r !== "" ? Number(r) : r || void 0 }, this.commit({ ...o, lines: i });
   }
   config() {
     return this._config ?? { type: "custom:energy-flow-builder-card" };
@@ -116,19 +127,22 @@ class N extends HTMLElement {
     this._config = e, this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: e }, bubbles: !0, composed: !0 })), this.render();
   }
 }
-function k(r) {
-  return ["x", "y", "decimals", "labelWidth", "labelHeight", "width", "activeAbove"].includes(r);
+function k(s) {
+  return ["x", "y", "decimals", "labelWidth", "labelHeight", "width", "activeAbove"].includes(s);
 }
-function E(r) {
-  return r === void 0 ? "" : String(r);
+function E(s) {
+  return s === void 0 ? "" : String(s);
 }
-function f(r) {
-  return r.replace(/[&<>\"']/g, (e) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[e] ?? e);
+function f(s) {
+  return s.replace(/[&<>\"']/g, (e) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[e] ?? e);
 }
-function s(r) {
-  return f(r);
+function d(s) {
+  return f(s);
 }
-const M = `
+function _(s) {
+  return !!(s != null && s.startsWith("data:image/"));
+}
+const N = `
   :host { display:block; color:var(--primary-text-color); }
   section { padding: 4px 0; }
   .intro, .empty { color:var(--secondary-text-color); font-size:.92rem; line-height:1.45; }
@@ -146,12 +160,15 @@ const M = `
   .three { grid-template-columns:1fr 1fr 1fr; }
   .check { display:flex; align-items:center; gap:8px; color:var(--primary-text-color); }
   .check input { width:auto; margin:0; }
+  .file-input { padding:7px; }
+  .file-note { color:var(--secondary-text-color); font-size:.78rem; margin-top:-4px; }
   button { border:0; border-radius:4px; padding:8px 10px; background:var(--primary-color); color:var(--text-primary-color); cursor:pointer; font:inherit; }
+  button.secondary { background:transparent; color:var(--primary-color); padding-left:0; }
   button.danger { background:transparent; color:var(--error-color); padding-left:0; }
   @media (max-width: 420px) { .row, .three { grid-template-columns:1fr; gap:0; } }
 `;
-customElements.define(S, N);
-const g = "energy-flow-builder-card", z = "0 0 1000 1000", _ = {
+customElements.define(M, S);
+const b = "energy-flow-builder-card", z = "0 0 1000 1000", C = {
   activeAbove: 10,
   lineWidth: 7,
   lineColor: "#16a6d9",
@@ -166,11 +183,11 @@ class A extends HTMLElement {
     super(...arguments), this._root = this.attachShadow({ mode: "open" });
   }
   setConfig(e) {
-    if (!e || e.type !== `custom:${g}`)
-      throw new Error(`Expected type custom:${g}`);
+    if (!e || e.type !== `custom:${b}`)
+      throw new Error(`Expected type custom:${b}`);
     this._config = {
       ...e,
-      defaults: { ..._, ...e.defaults ?? {} }
+      defaults: { ...C, ...e.defaults ?? {} }
     }, this.render();
   }
   set hass(e) {
@@ -184,7 +201,7 @@ class A extends HTMLElement {
   }
   static getStubConfig() {
     return {
-      type: `custom:${g}`,
+      type: `custom:${b}`,
       title: "Energiefluss",
       background: { color: "#dbeafe", viewBox: "0 0 1073 1466", aspectRatio: "1073 / 1466" },
       nodes: {
@@ -199,15 +216,15 @@ class A extends HTMLElement {
     };
   }
   render() {
-    var i, n;
+    var i, r, n;
     if (!this._config) return;
-    const e = this._config, t = ((i = e.background) == null ? void 0 : i.viewBox) ?? z, a = Object.entries(e.nodes ?? {}).filter(([, l]) => !l.hide), o = e.lines ?? [];
+    const e = this._config, t = ((i = e.background) == null ? void 0 : i.viewBox) ?? z, a = Object.entries(e.nodes ?? {}).filter(([, u]) => !u.hide), o = e.lines ?? [];
     this._root.innerHTML = `
-      <style>${C}</style>
+      <style>${L}</style>
       <ha-card>
         ${e.title ? `<div class="card-title">${x(e.title)}</div>` : ""}
         <div class="stage" style="${this.stageStyle(e)}">
-          ${(n = e.background) != null && n.image ? `<img class="background" src="${m(e.background.image)}" alt="">` : ""}
+          ${(r = e.background) != null && r.image ? `<img class="background" src="${m(e.background.image)}" alt="">` : ""}
           <svg class="flow-svg" viewBox="${m(t)}" preserveAspectRatio="xMidYMid meet" role="img">
             <defs>
               <filter id="efb-glow" x="-40%" y="-40%" width="180%" height="180%">
@@ -215,8 +232,12 @@ class A extends HTMLElement {
                 <feMerge><feMergeNode in="glow"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
               </filter>
             </defs>
-            ${o.map((l) => this.renderLine(l)).join("")}
-            ${a.map(([l, d]) => this.renderNode(l, d)).join("")}
+            ${o.map((u) => this.renderLine(u)).join("")}
+            ${(n = e.background) != null && n.showCoordinates ? this.renderCoordinateGrid(t) : ""}
+            ${a.map(([u, c]) => {
+      var l;
+      return this.renderNode(u, c, !!((l = e.background) != null && l.showCoordinates));
+    }).join("")}
           </svg>
         </div>
       </ha-card>
@@ -228,22 +249,22 @@ class A extends HTMLElement {
     return `${t}${a}`;
   }
   renderLine(e) {
-    const t = this.defaults(), a = e.value ?? this.entityNumber(e.entity), o = e.invert ? -a : a, i = Math.abs(o), n = e.activeAbove ?? t.activeAbove, l = i > n;
-    if (!l && e.hideWhenInactive) return "";
-    const d = o < 0 && e.pathNegative ? e.pathNegative : o >= 0 && e.pathPositive ? e.pathPositive : e.path;
-    if (!d) return "";
-    const c = H(e.id), u = e.width ?? t.lineWidth, h = e.duration ?? L(i, t.duration), p = e.color ?? t.lineColor, b = e.trackColor ?? t.trackColor, y = e.pulseColor ?? t.pulseColor, v = o < 0 ? "reverse" : "normal";
+    const t = this.defaults(), a = e.value ?? this.entityNumber(e.entity), o = e.invert ? -a : a, i = Math.abs(o), r = e.activeAbove ?? t.activeAbove, n = i > r;
+    if (!n && e.hideWhenInactive) return "";
+    const u = o < 0 && e.pathNegative ? e.pathNegative : o >= 0 && e.pathPositive ? e.pathPositive : e.path;
+    if (!u) return "";
+    const c = B(e.id), l = e.width ?? t.lineWidth, h = e.duration ?? H(i, t.duration), p = e.color ?? t.lineColor, g = e.trackColor ?? t.trackColor, y = e.pulseColor ?? t.pulseColor, v = o < 0 ? "reverse" : "normal";
     return `
-      <g class="flow-line ${l ? "is-active" : "is-idle"}" style="--line-width:${u};--duration:${h}s;--direction:${v};--flow-opacity:${l ? "1" : ".38"};--line-color:${m(p)};--track-color:${m(b)};--pulse-color:${m(y)}">
-        <path id="${c}" class="flow-track" d="${m(d)}"></path>
-        <path class="flow-main" d="${m(d)}"></path>
-        ${l ? `
-          <circle class="flow-pulse primary" r="${Math.max(5, u * 1.3)}">
+      <g class="flow-line ${n ? "is-active" : "is-idle"}" style="--line-width:${l};--duration:${h}s;--direction:${v};--flow-opacity:${n ? "1" : ".38"};--line-color:${m(p)};--track-color:${m(g)};--pulse-color:${m(y)}">
+        <path id="${c}" class="flow-track" d="${m(u)}"></path>
+        <path class="flow-main" d="${m(u)}"></path>
+        ${n ? `
+          <circle class="flow-pulse primary" r="${Math.max(5, l * 1.3)}">
             <animateMotion dur="${h}s" repeatCount="indefinite" calcMode="paced">
               <mpath href="#${c}"></mpath>
             </animateMotion>
           </circle>
-          <circle class="flow-pulse secondary" r="${Math.max(4, u)}">
+          <circle class="flow-pulse secondary" r="${Math.max(4, l)}">
             <animateMotion dur="${h}s" begin="${h / 2}s" repeatCount="indefinite" calcMode="paced">
               <mpath href="#${c}"></mpath>
             </animateMotion>
@@ -252,15 +273,20 @@ class A extends HTMLElement {
       </g>
     `;
   }
-  renderNode(e, t) {
-    var h, p;
-    const a = this.defaults(), o = this.entity(t.entity), i = this.formatEntity(o, t), n = t.secondaryEntity ? this.formatEntity(this.entity(t.secondaryEntity), { ...t, stateType: "raw" }) : "", l = t.name ?? ((p = (h = o == null ? void 0 : o.attributes) == null ? void 0 : h.friendly_name) == null ? void 0 : p.toString()) ?? e, d = t.labelWidth ?? a.labelWidth, c = t.labelHeight ?? a.labelHeight;
+  renderCoordinateGrid(e) {
+    const t = e.trim().split(/\s+/).map(Number), [, , a = 1e3, o = 1e3] = t, i = [0, 0.25, 0.5, 0.75, 1].map((n) => Math.round(a * n)), r = [0, 0.25, 0.5, 0.75, 1].map((n) => Math.round(o * n));
+    return `<g class="coordinate-grid">${i.map((n) => `<path d="M${n} 0 V${o}"></path><text x="${n + 10}" y="28">${n}</text>`).join("")}${r.map((n) => `<path d="M0 ${n} H${a}"></path>${n ? `<text x="10" y="${n - 8}">${n}</text>` : ""}`).join("")}</g>`;
+  }
+  renderNode(e, t, a) {
+    var p, g;
+    const o = this.defaults(), i = this.entity(t.entity), r = this.formatEntity(i, t), n = t.secondaryEntity ? this.formatEntity(this.entity(t.secondaryEntity), { ...t, stateType: "raw" }) : "", u = t.name ?? ((g = (p = i == null ? void 0 : i.attributes) == null ? void 0 : p.friendly_name) == null ? void 0 : g.toString()) ?? e, c = t.labelWidth ?? o.labelWidth, l = t.labelHeight ?? o.labelHeight;
     return `
-      <g class="flow-node ${Math.abs(this.entityNumber(t.entity)) > (t.activeAbove ?? a.activeAbove) ? "is-active" : "is-idle"}" data-node-id="${m(e)}" data-entity="${m(t.entity ?? "")}" transform="translate(${t.x} ${t.y})">
-        <rect class="node-box" width="${d}" height="${c}" rx="16" ry="16"></rect>
-        <text class="node-title" x="18" y="32">${w(l)}</text>
-        <text class="node-value" x="18" y="61">${w(i)}</text>
-        ${n ? `<text class="node-secondary" x="${d - 18}" y="32">${w(n)}</text>` : ""}
+      <g class="flow-node ${Math.abs(this.entityNumber(t.entity)) > (t.activeAbove ?? o.activeAbove) ? "is-active" : "is-idle"}" data-node-id="${m(e)}" data-entity="${m(t.entity ?? "")}" transform="translate(${t.x} ${t.y})">
+        <rect class="node-box" width="${c}" height="${l}" rx="16" ry="16"></rect>
+        <text class="node-title" x="18" y="32">${w(u)}</text>
+        <text class="node-value" x="18" y="61">${w(r)}</text>
+        ${n ? `<text class="node-secondary" x="${c - 18}" y="32">${w(n)}</text>` : ""}
+        ${a ? `<text class="node-coordinates" x="0" y="${l + 21}">x ${t.x} · y ${t.y}</text>` : ""}
       </g>
     `;
   }
@@ -284,23 +310,23 @@ class A extends HTMLElement {
   }
   defaults() {
     var e;
-    return { ..._, ...((e = this._config) == null ? void 0 : e.defaults) ?? {} };
+    return { ...C, ...((e = this._config) == null ? void 0 : e.defaults) ?? {} };
   }
   entityNumber(e) {
     const t = this.entity(e), a = Number(t == null ? void 0 : t.state);
     return Number.isFinite(a) ? a : 0;
   }
   formatEntity(e, t) {
-    var n, l;
+    var r, n;
     if (!e) return "unavailable";
     if (t.stateType === "raw") return e.state;
     const a = Number(e.state);
     if (!Number.isFinite(a)) return e.state;
-    const o = t.decimals ?? (Math.abs(a) >= 100 ? 0 : 1), i = t.unit ?? ((l = (n = e.attributes) == null ? void 0 : n.unit_of_measurement) == null ? void 0 : l.toString()) ?? "";
+    const o = t.decimals ?? (Math.abs(a) >= 100 ? 0 : 1), i = t.unit ?? ((n = (r = e.attributes) == null ? void 0 : r.unit_of_measurement) == null ? void 0 : n.toString()) ?? "";
     return `${a.toFixed(o)}${i ? ` ${i}` : ""}`;
   }
 }
-const C = `
+const L = `
   :host {
     display: block;
   }
@@ -380,6 +406,24 @@ const C = `
     opacity: .68;
   }
 
+  .coordinate-grid path {
+    stroke: rgba(22, 166, 217, .38);
+    stroke-width: 1;
+    stroke-dasharray: 6 9;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .coordinate-grid text,
+  .node-coordinates {
+    fill: #056b90;
+    font-size: 16px;
+    font-weight: 700;
+    paint-order: stroke;
+    stroke: rgba(255, 255, 255, .88);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+  }
+
   .node-box {
     fill: color-mix(in srgb, var(--card-background-color) 86%, transparent);
     stroke: color-mix(in srgb, var(--primary-text-color) 14%, transparent);
@@ -419,27 +463,27 @@ const C = `
     to { stroke-dashoffset: -216; }
   }
 `;
-function L(r, e) {
-  if (r <= 0) return e;
-  const t = Math.max(100, Math.min(r, 8e3));
+function H(s, e) {
+  if (s <= 0) return e;
+  const t = Math.max(100, Math.min(s, 8e3));
   return Number((6 - (t - 100) / 7900 * 4.4).toFixed(2));
 }
-function H(r) {
-  return `efb-${r.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+function B(s) {
+  return `efb-${s.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 }
-function x(r) {
-  return r.replace(/[&<>"']/g, (e) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[e] ?? e);
+function x(s) {
+  return s.replace(/[&<>"']/g, (e) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[e] ?? e);
 }
-function m(r) {
-  return x(r);
+function m(s) {
+  return x(s);
 }
-function w(r) {
-  return x(r);
+function w(s) {
+  return x(s);
 }
-customElements.define(g, A);
+customElements.define(b, A);
 window.customCards = window.customCards ?? [];
 window.customCards.push({
-  type: g,
+  type: b,
   name: "Energy Flow Builder Card",
   description: "Build a custom animated energy flow diagram from local Home Assistant entities."
 });

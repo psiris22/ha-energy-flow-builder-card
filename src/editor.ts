@@ -32,7 +32,11 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
             <label>Hintergrundfarbe <input data-path="background.color" value="${attr(config.background?.color ?? "")}" placeholder="#dbeafe"></label>
             <label>Koordinatenraum <input data-path="background.viewBox" value="${attr(config.background?.viewBox ?? "0 0 1073 1466")}"></label>
           </div>
-          <label>Hintergrundbild (optional) <input data-path="background.image" value="${attr(config.background?.image ?? "")}" placeholder="/local/meine-grafik.png"></label>
+          <label>Hintergrundbild per Pfad <input data-path="background.image" value="${attr(isDataImage(config.background?.image) ? "" : config.background?.image ?? "")}" placeholder="/local/meine-grafik.png"></label>
+          <label>Bild vom Computer auswählen <input class="file-input" type="file" accept="image/png,image/jpeg,image/webp" data-action="select-image"></label>
+          <div class="file-note">Das Bild wird direkt in dieser Karten-Konfiguration gespeichert.</div>
+          ${isDataImage(config.background?.image) ? '<button class="secondary" type="button" data-action="clear-image">Ausgewähltes Bild entfernen</button>' : ""}
+          <label class="check"><input type="checkbox" data-path="background.showCoordinates" ${config.background?.showCoordinates ? "checked" : ""}> Koordinatenraster und X/Y-Werte in der Vorschau zeigen</label>
         </div>
         <div class="heading"><h3>Anzeigen</h3><button type="button" data-action="add-node">Anzeige hinzufügen</button></div>
         ${nodes.length ? nodes.map(([id, node]) => this.nodeForm(id, node)).join("") : "<p class=empty>Noch keine Anzeigen angelegt.</p>"}
@@ -78,11 +82,12 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
   }
 
   private bind(): void {
-    this._root.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input[data-path], select[data-path]").forEach((input) => input.addEventListener("change", () => this.updatePath(input.dataset.path!, input.value)));
+    this._root.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input[data-path], select[data-path]").forEach((input) => input.addEventListener("change", () => this.updatePath(input.dataset.path!, input instanceof HTMLInputElement && input.type === "checkbox" ? input.checked : input.value)));
     this._root.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-node][data-key]").forEach((input) => input.addEventListener("change", () => this.updateNode(input.dataset.node!, input.dataset.key!, input)));
     this._root.querySelectorAll<HTMLInputElement>("input[data-node-id]").forEach((input) => input.addEventListener("change", () => this.renameNode(input.dataset.nodeId!, input.value)));
     this._root.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-line][data-key]").forEach((input) => input.addEventListener("change", () => this.updateLine(Number(input.dataset.line), input.dataset.key!, input)));
     this._root.querySelectorAll<HTMLButtonElement>("button[data-action]").forEach((button) => button.addEventListener("click", () => this.action(button)));
+    this._root.querySelectorAll<HTMLInputElement>('input[data-action="select-image"]').forEach((input) => input.addEventListener("change", () => this.selectImage(input)));
   }
 
   private action(button: HTMLButtonElement): void {
@@ -102,9 +107,18 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
     }
     if (button.dataset.action === "add-line") this.commit({ ...config, lines: [...(config.lines ?? []), { id: `linie_${(config.lines?.length ?? 0) + 1}`, path: "M100 100 H300" }] });
     if (button.dataset.action === "remove-line") this.commit({ ...config, lines: (config.lines ?? []).filter((_, index) => index !== Number(button.dataset.index)) });
+    if (button.dataset.action === "clear-image") this.updatePath("background.image", "");
   }
 
-  private updatePath(path: string, value: string): void {
+  private selectImage(input: HTMLInputElement): void {
+    const file = input.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.addEventListener("load", () => this.updatePath("background.image", String(reader.result ?? "")));
+    reader.readAsDataURL(file);
+  }
+
+  private updatePath(path: string, value: string | boolean): void {
     const config = this.config();
     const [group, key] = path.split(".");
     const existing = group === "background" ? config.background ?? {} : {};
@@ -148,6 +162,7 @@ function numericKey(key: string): boolean { return ["x", "y", "decimals", "label
 function numberValue(value: number | undefined): string { return value === undefined ? "" : String(value); }
 function escapeHtml(value: string): string { return value.replace(/[&<>\"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '\"': "&quot;", "'": "&#39;" })[char] ?? char); }
 function attr(value: string): string { return escapeHtml(value); }
+function isDataImage(value?: string): boolean { return Boolean(value?.startsWith("data:image/")); }
 
 const styles = `
   :host { display:block; color:var(--primary-text-color); }
@@ -167,7 +182,10 @@ const styles = `
   .three { grid-template-columns:1fr 1fr 1fr; }
   .check { display:flex; align-items:center; gap:8px; color:var(--primary-text-color); }
   .check input { width:auto; margin:0; }
+  .file-input { padding:7px; }
+  .file-note { color:var(--secondary-text-color); font-size:.78rem; margin-top:-4px; }
   button { border:0; border-radius:4px; padding:8px 10px; background:var(--primary-color); color:var(--text-primary-color); cursor:pointer; font:inherit; }
+  button.secondary { background:transparent; color:var(--primary-color); padding-left:0; }
   button.danger { background:transparent; color:var(--error-color); padding-left:0; }
   @media (max-width: 420px) { .row, .three { grid-template-columns:1fr; gap:0; } }
 `;

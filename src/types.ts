@@ -16,6 +16,7 @@ export interface EnergyFlowBuilderCardConfig {
     color?: string;
     viewBox?: string;
     aspectRatio?: string;
+    showCoordinates?: boolean;
   };
   defaults?: {
     activeAbove?: number;
