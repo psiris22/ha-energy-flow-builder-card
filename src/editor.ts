@@ -104,6 +104,7 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
         <label>Zweite Entity (optional) ${this.entitySelect("node", id, "secondaryEntity", node.secondaryEntity, true)}</label>
         <div class="row three"><label>X <input type="number" data-node="${attr(id)}" data-key="x" value="${numberValue(node.x)}"></label><label>Y <input type="number" data-node="${attr(id)}" data-key="y" value="${numberValue(node.y)}"></label><label>Nachkommastellen <input type="number" min="0" max="4" data-node="${attr(id)}" data-key="decimals" value="${node.decimals ?? ""}" placeholder="auto"></label></div>
         <div class="row"><label>Breite <input type="number" data-node="${attr(id)}" data-key="labelWidth" value="${node.labelWidth ?? ""}" placeholder="Standard"></label><label>Höhe <input type="number" data-node="${attr(id)}" data-key="labelHeight" value="${node.labelHeight ?? ""}" placeholder="Standard"></label></div>
+        <label>Linienanschluss ${this.nodePortSelect(id, node.connectionPort)}</label>
         <details class="subitem" data-section="node-style:${attr(id)}" ${this.sectionOpen(`node-style:${id}`) ? "open" : ""}>
           <summary>Darstellung</summary>
           <div class="row"><label>Hintergrund <input data-node-style="${attr(id)}" data-key="background" value="${attr(node.style?.background ?? "")}" placeholder="#182432"></label><label>Rahmen <input data-node-style="${attr(id)}" data-key="border" value="${attr(node.style?.border ?? "")}" placeholder="#16a6d9"></label></div>
@@ -125,7 +126,7 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
         <label>Steuernde Entity ${this.lineEntitySelect(index, line.entity)}</label>
         <label class="check"><input type="checkbox" data-line="${index}" data-key="autoRoute" ${line.autoRoute ? "checked" : ""}> Automatisch zwischen zwei Anzeigen verbinden</label>
         <div class="row"><label>Von ${this.nodeSelect(index, "source", line.source, nodes)}</label><label>Nach ${this.nodeSelect(index, "target", line.target, nodes)}</label></div>
-        <div class="row"><label>Startseite ${this.portSelect(index, "sourcePort", line.sourcePort)}</label><label>Zielseite ${this.portSelect(index, "targetPort", line.targetPort)}</label></div>
+        <div class="row"><label>Startanschluss ${this.portSelect(index, "sourcePort", line.sourcePort)}</label><label>Zielanschluss ${this.portSelect(index, "targetPort", line.targetPort)}</label></div>
         ${line.autoRoute ? `<div class="file-note">Die Verbindung folgt den Boxen automatisch. Für einen eigenen Verlauf die automatische Verbindung ausschalten und Punkte bearbeiten.</div>` : `<label>SVG-Pfad <input data-line="${index}" data-key="path" value="${attr(line.path ?? "")}" placeholder="M600 500 V1100"></label>`}
         ${line.points?.length ? `<div class="file-note">${line.points.length} bearbeitbare Punkte: Punkte ziehen, Doppelklick auf die Linie für einen weiteren Punkt.</div>` : `<button class="secondary" type="button" data-action="make-points" data-index="${index}">Pfad mit Maus bearbeiten</button>`}
         <div class="row"><label>Farbe <input data-line="${index}" data-key="color" value="${attr(line.color ?? "")}" placeholder="#16a6d9"></label><label>Strichmuster <input data-line="${index}" data-key="dashPattern" value="${attr(line.dashPattern ?? "")}" placeholder="26 190"></label></div>
@@ -152,7 +153,15 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
   }
 
   private portSelect(index: number, key: string, current: string | undefined): string {
-    return `<select data-line="${index}" data-key="${key}">${["top", "right", "bottom", "left"].map((port) => `<option value="${port}" ${port === (current ?? (key === "sourcePort" ? "right" : "left")) ? "selected" : ""}>${({ top: "Oben", right: "Rechts", bottom: "Unten", left: "Links" })[port]}</option>`).join("")}</select>`;
+    return `<select data-line="${index}" data-key="${key}"><option value="" ${current ? "" : "selected"}>Box-Einstellung</option>${this.portOptions(current)}</select>`;
+  }
+
+  private nodePortSelect(id: string, current: string | undefined): string {
+    return `<select data-node="${attr(id)}" data-key="connectionPort">${this.portOptions(current ?? "bottom")}</select>`;
+  }
+
+  private portOptions(current: string | undefined): string {
+    return ["top", "right", "bottom", "left"].map((port) => `<option value="${port}" ${port === current ? "selected" : ""}>${({ top: "Oben mittig", right: "Rechts mittig", bottom: "Unten mittig", left: "Links mittig" })[port]}</option>`).join("");
   }
 
   private sectionOpen(id: string, defaultOpen = false): boolean {
@@ -220,7 +229,7 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
       nodes[id] = { ...structuredClone(source), x: source.x + 25, y: source.y + 25, name: `${source.name ?? button.dataset.id} Kopie` };
       this.commit({ ...config, nodes });
     }
-    if (button.dataset.action === "add-line") this.commit({ ...config, lines: [...(config.lines ?? []), { id: `linie_${(config.lines?.length ?? 0) + 1}`, autoRoute: true, sourcePort: "right", targetPort: "left" }] });
+    if (button.dataset.action === "add-line") this.commit({ ...config, lines: [...(config.lines ?? []), { id: `linie_${(config.lines?.length ?? 0) + 1}`, autoRoute: true }] });
     if (button.dataset.action === "remove-line") this.commit({ ...config, lines: (config.lines ?? []).filter((_, index) => index !== Number(button.dataset.index)) });
     if (button.dataset.action === "duplicate-line") {
       const lines = [...(config.lines ?? [])];
@@ -399,9 +408,9 @@ function pvPreset(): EnergyFlowBuilderCardConfig {
       heating: { x: 760, y: 900, name: "Heizung" }
     },
     lines: [
-      { id: "solar_haus", source: "solar", target: "house", sourcePort: "right", targetPort: "left", autoRoute: true },
-      { id: "solar_batterie", source: "solar", target: "battery", sourcePort: "bottom", targetPort: "top", autoRoute: true },
-      { id: "netz_haus", source: "grid", target: "house", sourcePort: "top", targetPort: "bottom", autoRoute: true }
+      { id: "solar_haus", source: "solar", target: "house", autoRoute: true },
+      { id: "solar_batterie", source: "solar", target: "battery", autoRoute: true },
+      { id: "netz_haus", source: "grid", target: "house", autoRoute: true }
     ]
   };
 }
@@ -418,9 +427,11 @@ function routePoints(line: EnergyFlowLineConfig, nodes: Record<string, EnergyFlo
     if (port === "left") return { x: node.x, y: node.y + height / 2 };
     return { x: node.x + width, y: node.y + height / 2 };
   };
-  const start = point(source, line.sourcePort ?? "right");
-  const end = point(target, line.targetPort ?? "left");
-  const horizontal = [line.sourcePort, line.targetPort].some((port) => port === "left" || port === "right");
+  const sourcePort = line.sourcePort ?? source.connectionPort ?? "bottom";
+  const targetPort = line.targetPort ?? target.connectionPort ?? "bottom";
+  const start = point(source, sourcePort);
+  const end = point(target, targetPort);
+  const horizontal = [sourcePort, targetPort].some((port) => port === "left" || port === "right");
   return horizontal
     ? [start, { x: Math.round((start.x + end.x) / 2), y: start.y }, { x: Math.round((start.x + end.x) / 2), y: end.y }, end]
     : [start, { x: start.x, y: Math.round((start.y + end.y) / 2) }, { x: end.x, y: Math.round((start.y + end.y) / 2) }, end];

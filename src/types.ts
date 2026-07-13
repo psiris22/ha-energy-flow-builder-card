@@ -54,6 +54,8 @@ export interface EnergyFlowNodeConfig {
   labelHeight?: number;
   stateType?: "power" | "energy" | "percent" | "raw";
   tapAction?: "more-info" | "none";
+  /** Default connection side for automatic lines. Defaults to bottom center. */
+  connectionPort?: "top" | "right" | "bottom" | "left";
   style?: {
     background?: string;
     border?: string;

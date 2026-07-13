@@ -147,7 +147,7 @@ class EnergyFlowBuilderCard extends HTMLElement {
     if (line.autoRoute && line.source && line.target) {
       const source = this._config?.nodes?.[line.source];
       const target = this._config?.nodes?.[line.target];
-      if (source && target) return autoRoutePath(source, target, this.defaults(), line.sourcePort, line.targetPort);
+      if (source && target) return autoRoutePath(source, target, this.defaults(), line.sourcePort ?? source.connectionPort, line.targetPort ?? target.connectionPort);
     }
     return value < 0 && line.pathNegative ? line.pathNegative : value >= 0 && line.pathPositive ? line.pathPositive : line.path;
   }
@@ -515,8 +515,8 @@ function pointsToPath(points: Array<{ x: number; y: number }>): string {
 type Port = "top" | "right" | "bottom" | "left" | undefined;
 
 function autoRoutePath(source: EnergyFlowNodeConfig, target: EnergyFlowNodeConfig, defaults: DefaultConfig, sourcePort: Port, targetPort: Port): string {
-  const start = nodePort(source, defaults, sourcePort ?? "right");
-  const end = nodePort(target, defaults, targetPort ?? "left");
+  const start = nodePort(source, defaults, sourcePort ?? "bottom");
+  const end = nodePort(target, defaults, targetPort ?? "bottom");
   const horizontal = sourcePort === "left" || sourcePort === "right" || targetPort === "left" || targetPort === "right";
   if (horizontal) {
     const middle = Math.round((start.x + end.x) / 2);
