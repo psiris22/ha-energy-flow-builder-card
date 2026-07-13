@@ -1,6 +1,6 @@
 # Energy Flow Builder Card
 
-![Energy Flow Builder Card Vorschau](docs/energy-flow-builder-preview.svg)
+![Energy Flow Builder Card Vorschau](docs/energy-flow-builder-preview.jpeg)
 
 **Energy Flow Builder Card** ist eine frei konfigurierbare Lovelace Custom Card fuer Home Assistant. Du kannst damit eine eigene animierte Energiefluss-Ansicht bauen: mit eigenem Hintergrundbild, eigenen Koordinaten, eigenen Linien und deinen lokalen Home-Assistant-Entitaeten.
 
