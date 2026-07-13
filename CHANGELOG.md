@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.4
+
+- Added searchable entity fields in the visual editor.
+
 ## 0.2.3
 
 - Added mouse-editable line points with drag-and-drop and double-click insertion.

@@ -77,6 +77,7 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
         ${nodes.length ? nodes.map(([id, node]) => this.nodeForm(id, node)).join("") : "<p class=empty>Noch keine Anzeigen angelegt.</p>"}
         <div class="heading"><h3>Linien</h3><button type="button" data-action="add-line">Linie hinzufügen</button></div>
         ${lines.length ? lines.map((line, index) => this.lineForm(line, index)).join("") : "<p class=empty>Linien können später per SVG-Pfad ergänzt werden.</p>"}
+        <datalist id="efb-entity-list">${this.entityOptions()}</datalist>
       </section>`;
     this.bind();
   }
@@ -112,9 +113,16 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
   }
 
   private entitySelect(kind: "node" | "line", id: string, key: string, current?: string, optional = false): string {
-    const entities = Object.entries(this._hass?.states ?? {}).filter(([, state]) => Boolean(state)).sort(([a, stateA], [b, stateB]) => (stateA?.attributes?.friendly_name?.toString() ?? a).localeCompare(stateB?.attributes?.friendly_name?.toString() ?? b));
     const data = kind === "node" ? `data-node="${attr(id)}"` : `data-line="${attr(id)}"`;
-    return `<select ${data} data-key="${key}"><option value="">${optional ? "Keine zweite Entity" : "Entity auswählen"}</option>${entities.map(([entityId, state]) => `<option value="${attr(entityId)}" ${entityId === current ? "selected" : ""}>${escapeHtml(state?.attributes?.friendly_name?.toString() ?? entityId)} (${escapeHtml(entityId)})</option>`).join("")}</select>`;
+    return `<input class="entity-search" type="search" list="efb-entity-list" ${data} data-key="${key}" value="${attr(current ?? "")}" placeholder="${optional ? "Keine zweite Entity" : "Entität suchen..."}" autocomplete="off">`;
+  }
+
+  private entityOptions(): string {
+    return Object.entries(this._hass?.states ?? {})
+      .filter(([, state]) => Boolean(state))
+      .sort(([a, stateA], [b, stateB]) => (stateA?.attributes?.friendly_name?.toString() ?? a).localeCompare(stateB?.attributes?.friendly_name?.toString() ?? b))
+      .map(([entityId, state]) => `<option value="${attr(entityId)}" label="${attr(`${state?.attributes?.friendly_name?.toString() ?? entityId} (${entityId})`)}"></option>`)
+      .join("");
   }
 
   private bind(): void {
@@ -253,6 +261,7 @@ const styles = `
   .check { display:flex; align-items:center; gap:8px; color:var(--primary-text-color); }
   .check input { width:auto; margin:0; }
   .file-input { padding:7px; }
+  .entity-search { border-color: color-mix(in srgb, var(--primary-color) 36%, var(--divider-color)); }
   .file-note { color:var(--secondary-text-color); font-size:.78rem; margin-top:-4px; }
   button { border:0; border-radius:4px; padding:8px 10px; background:var(--primary-color); color:var(--text-primary-color); cursor:pointer; font:inherit; }
   button.secondary { background:transparent; color:var(--primary-color); padding-left:0; }
