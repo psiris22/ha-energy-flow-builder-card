@@ -1,0 +1,11 @@
+# Changelog
+
+## 0.2.0
+
+- Added the Lovelace visual editor with local Home Assistant entity selection.
+- Added editable nodes, label positions, optional secondary entities and editable flow lines.
+- Prepared HACS validation and automated GitHub release builds.
+
+## 0.1.0
+
+- Initial configurable energy flow renderer.

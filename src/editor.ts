@@ -1,0 +1,175 @@
+import type { EnergyFlowBuilderCardConfig, EnergyFlowLineConfig, EnergyFlowNodeConfig, HomeAssistant } from "./types";
+
+const EDITOR_TAG = "energy-flow-builder-card-editor";
+
+class EnergyFlowBuilderCardEditor extends HTMLElement {
+  private _config?: EnergyFlowBuilderCardConfig;
+  private _hass?: HomeAssistant;
+  private readonly _root = this.attachShadow({ mode: "open" });
+
+  setConfig(config: EnergyFlowBuilderCardConfig): void {
+    this._config = structuredClone(config);
+    this.render();
+  }
+
+  set hass(hass: HomeAssistant) {
+    this._hass = hass;
+    this.render();
+  }
+
+  private render(): void {
+    if (!this._config) return;
+    const config = this._config;
+    const nodes = Object.entries(config.nodes ?? {});
+    const lines = config.lines ?? [];
+    this._root.innerHTML = `
+      <style>${styles}</style>
+      <section>
+        <div class="intro">Wähle deine lokalen Entitäten und passe die Positionen an. Die Vorschau aktualisiert sich sofort.</div>
+        <div class="section">
+          <label>Überschrift <input data-path="title" value="${attr(config.title ?? "")}" placeholder="Energiefluss"></label>
+          <div class="row">
+            <label>Hintergrundfarbe <input data-path="background.color" value="${attr(config.background?.color ?? "")}" placeholder="#dbeafe"></label>
+            <label>Koordinatenraum <input data-path="background.viewBox" value="${attr(config.background?.viewBox ?? "0 0 1073 1466")}"></label>
+          </div>
+          <label>Hintergrundbild (optional) <input data-path="background.image" value="${attr(config.background?.image ?? "")}" placeholder="/local/meine-grafik.png"></label>
+        </div>
+        <div class="heading"><h3>Anzeigen</h3><button type="button" data-action="add-node">Anzeige hinzufügen</button></div>
+        ${nodes.length ? nodes.map(([id, node]) => this.nodeForm(id, node)).join("") : "<p class=empty>Noch keine Anzeigen angelegt.</p>"}
+        <div class="heading"><h3>Linien</h3><button type="button" data-action="add-line">Linie hinzufügen</button></div>
+        ${lines.length ? lines.map((line, index) => this.lineForm(line, index)).join("") : "<p class=empty>Linien können später per SVG-Pfad ergänzt werden.</p>"}
+      </section>`;
+    this.bind();
+  }
+
+  private nodeForm(id: string, node: EnergyFlowNodeConfig): string {
+    return `<details class="item" open>
+      <summary>${escapeHtml(node.name ?? id)} <span>${escapeHtml(node.entity ?? "Keine Entity")}</span></summary>
+      <div class="content">
+        <div class="row"><label>Name <input data-node="${attr(id)}" data-key="name" value="${attr(node.name ?? "")}"></label><label>Interne ID <input data-node-id="${attr(id)}" value="${attr(id)}"></label></div>
+        <label>Wert-Entity ${this.entitySelect("node", id, "entity", node.entity)}</label>
+        <label>Zweite Entity (optional) ${this.entitySelect("node", id, "secondaryEntity", node.secondaryEntity, true)}</label>
+        <div class="row three"><label>X <input type="number" data-node="${attr(id)}" data-key="x" value="${numberValue(node.x)}"></label><label>Y <input type="number" data-node="${attr(id)}" data-key="y" value="${numberValue(node.y)}"></label><label>Nachkommastellen <input type="number" min="0" max="4" data-node="${attr(id)}" data-key="decimals" value="${node.decimals ?? ""}" placeholder="auto"></label></div>
+        <div class="row"><label>Breite <input type="number" data-node="${attr(id)}" data-key="labelWidth" value="${node.labelWidth ?? ""}" placeholder="Standard"></label><label>Höhe <input type="number" data-node="${attr(id)}" data-key="labelHeight" value="${node.labelHeight ?? ""}" placeholder="Standard"></label></div>
+        <label class="check"><input type="checkbox" data-node="${attr(id)}" data-key="hide" ${node.hide ? "checked" : ""}> Anzeige ausblenden</label>
+        <button class="danger" type="button" data-action="remove-node" data-id="${attr(id)}">Anzeige entfernen</button>
+      </div>
+    </details>`;
+  }
+
+  private lineForm(line: EnergyFlowLineConfig, index: number): string {
+    return `<details class="item">
+      <summary>${escapeHtml(line.id || `Linie ${index + 1}`)} <span>${escapeHtml(line.entity ?? "Keine Entity")}</span></summary>
+      <div class="content">
+        <div class="row"><label>ID <input data-line="${index}" data-key="id" value="${attr(line.id)}"></label><label>Breite <input type="number" data-line="${index}" data-key="width" value="${line.width ?? ""}" placeholder="Standard"></label></div>
+        <label>Steuernde Entity ${this.entitySelect("line", String(index), "entity", line.entity)}</label>
+        <label>SVG-Pfad <input data-line="${index}" data-key="path" value="${attr(line.path ?? "")}" placeholder="M600 500 V1100"></label>
+        <div class="row"><label>Farbe <input data-line="${index}" data-key="color" value="${attr(line.color ?? "")}" placeholder="#16a6d9"></label><label>Schwelle <input type="number" data-line="${index}" data-key="activeAbove" value="${line.activeAbove ?? ""}" placeholder="Standard"></label></div>
+        <label class="check"><input type="checkbox" data-line="${index}" data-key="invert" ${line.invert ? "checked" : ""}> Vorzeichen umdrehen</label>
+        <button class="danger" type="button" data-action="remove-line" data-index="${index}">Linie entfernen</button>
+      </div>
+    </details>`;
+  }
+
+  private entitySelect(kind: "node" | "line", id: string, key: string, current?: string, optional = false): string {
+    const entities = Object.entries(this._hass?.states ?? {}).filter(([, state]) => Boolean(state)).sort(([a, stateA], [b, stateB]) => (stateA?.attributes?.friendly_name?.toString() ?? a).localeCompare(stateB?.attributes?.friendly_name?.toString() ?? b));
+    const data = kind === "node" ? `data-node="${attr(id)}"` : `data-line="${attr(id)}"`;
+    return `<select ${data} data-key="${key}"><option value="">${optional ? "Keine zweite Entity" : "Entity auswählen"}</option>${entities.map(([entityId, state]) => `<option value="${attr(entityId)}" ${entityId === current ? "selected" : ""}>${escapeHtml(state?.attributes?.friendly_name?.toString() ?? entityId)} (${escapeHtml(entityId)})</option>`).join("")}</select>`;
+  }
+
+  private bind(): void {
+    this._root.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input[data-path], select[data-path]").forEach((input) => input.addEventListener("change", () => this.updatePath(input.dataset.path!, input.value)));
+    this._root.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-node][data-key]").forEach((input) => input.addEventListener("change", () => this.updateNode(input.dataset.node!, input.dataset.key!, input)));
+    this._root.querySelectorAll<HTMLInputElement>("input[data-node-id]").forEach((input) => input.addEventListener("change", () => this.renameNode(input.dataset.nodeId!, input.value)));
+    this._root.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-line][data-key]").forEach((input) => input.addEventListener("change", () => this.updateLine(Number(input.dataset.line), input.dataset.key!, input)));
+    this._root.querySelectorAll<HTMLButtonElement>("button[data-action]").forEach((button) => button.addEventListener("click", () => this.action(button)));
+  }
+
+  private action(button: HTMLButtonElement): void {
+    const config = this.config();
+    if (button.dataset.action === "add-node") {
+      const nodes = { ...(config.nodes ?? {}) };
+      let id = "anzeige";
+      let number = 2;
+      while (nodes[id]) id = `anzeige_${number++}`;
+      nodes[id] = { x: 100, y: 100, name: "Neue Anzeige" };
+      this.commit({ ...config, nodes });
+    }
+    if (button.dataset.action === "remove-node" && button.dataset.id) {
+      const nodes = { ...(config.nodes ?? {}) };
+      delete nodes[button.dataset.id];
+      this.commit({ ...config, nodes });
+    }
+    if (button.dataset.action === "add-line") this.commit({ ...config, lines: [...(config.lines ?? []), { id: `linie_${(config.lines?.length ?? 0) + 1}`, path: "M100 100 H300" }] });
+    if (button.dataset.action === "remove-line") this.commit({ ...config, lines: (config.lines ?? []).filter((_, index) => index !== Number(button.dataset.index)) });
+  }
+
+  private updatePath(path: string, value: string): void {
+    const config = this.config();
+    const [group, key] = path.split(".");
+    const existing = group === "background" ? config.background ?? {} : {};
+    this.commit({ ...config, [group]: { ...existing, [key]: value || undefined } });
+  }
+
+  private updateNode(id: string, key: string, input: HTMLInputElement | HTMLSelectElement): void {
+    const nodes = { ...(this.config().nodes ?? {}) };
+    const value = input instanceof HTMLInputElement && input.type === "checkbox" ? input.checked : input.value;
+    nodes[id] = { ...nodes[id], [key]: numericKey(key) && value !== "" ? Number(value) : value || undefined };
+    this.commit({ ...this.config(), nodes });
+  }
+
+  private renameNode(oldId: string, newId: string): void {
+    const id = newId.trim().replace(/[^a-zA-Z0-9_-]/g, "_");
+    if (!id || id === oldId || this.config().nodes?.[id]) { this.render(); return; }
+    const nodes = { ...(this.config().nodes ?? {}) };
+    const node = nodes[oldId];
+    delete nodes[oldId];
+    nodes[id] = node;
+    this.commit({ ...this.config(), nodes });
+  }
+
+  private updateLine(index: number, key: string, input: HTMLInputElement | HTMLSelectElement): void {
+    const config = this.config();
+    const lines = [...(config.lines ?? [])];
+    const value = input instanceof HTMLInputElement && input.type === "checkbox" ? input.checked : input.value;
+    lines[index] = { ...lines[index], [key]: numericKey(key) && value !== "" ? Number(value) : value || undefined };
+    this.commit({ ...config, lines });
+  }
+
+  private config(): EnergyFlowBuilderCardConfig { return this._config ?? { type: "custom:energy-flow-builder-card" }; }
+  private commit(config: EnergyFlowBuilderCardConfig): void {
+    this._config = config;
+    this.dispatchEvent(new CustomEvent("config-changed", { detail: { config }, bubbles: true, composed: true }));
+    this.render();
+  }
+}
+
+function numericKey(key: string): boolean { return ["x", "y", "decimals", "labelWidth", "labelHeight", "width", "activeAbove"].includes(key); }
+function numberValue(value: number | undefined): string { return value === undefined ? "" : String(value); }
+function escapeHtml(value: string): string { return value.replace(/[&<>\"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '\"': "&quot;", "'": "&#39;" })[char] ?? char); }
+function attr(value: string): string { return escapeHtml(value); }
+
+const styles = `
+  :host { display:block; color:var(--primary-text-color); }
+  section { padding: 4px 0; }
+  .intro, .empty { color:var(--secondary-text-color); font-size:.92rem; line-height:1.45; }
+  .section { padding: 12px 0; border-bottom:1px solid var(--divider-color); }
+  .heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:18px 0 8px; }
+  h3 { margin:0; font-size:1rem; }
+  .item { border:1px solid var(--divider-color); border-radius:6px; margin:8px 0; overflow:hidden; }
+  summary { padding:11px 12px; cursor:pointer; font-weight:600; }
+  summary span { display:block; color:var(--secondary-text-color); font-size:.78rem; font-weight:400; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .content { padding:0 12px 12px; }
+  label { display:block; font-size:.82rem; color:var(--secondary-text-color); margin:10px 0; }
+  input, select { display:block; box-sizing:border-box; width:100%; border:1px solid var(--divider-color); border-radius:4px; background:var(--card-background-color); color:var(--primary-text-color); padding:9px; margin-top:4px; font:inherit; }
+  select { max-width:100%; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .three { grid-template-columns:1fr 1fr 1fr; }
+  .check { display:flex; align-items:center; gap:8px; color:var(--primary-text-color); }
+  .check input { width:auto; margin:0; }
+  button { border:0; border-radius:4px; padding:8px 10px; background:var(--primary-color); color:var(--text-primary-color); cursor:pointer; font:inherit; }
+  button.danger { background:transparent; color:var(--error-color); padding-left:0; }
+  @media (max-width: 420px) { .row, .three { grid-template-columns:1fr; gap:0; } }
+`;
+
+customElements.define(EDITOR_TAG, EnergyFlowBuilderCardEditor);

@@ -5,7 +5,8 @@ export default defineConfig({
     lib: {
       entry: "src/card.ts",
       formats: ["es"],
-      fileName: () => "energy-flow-builder-card.js"
+      // HACS identifies dashboard plugins by a JavaScript file matching the repository name.
+      fileName: () => "ha-energy-flow-builder-card.js"
     },
     rollupOptions: {
       output: {

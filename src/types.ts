@@ -31,6 +31,11 @@ export interface EnergyFlowBuilderCardConfig {
   lines?: EnergyFlowLineConfig[];
 }
 
+export interface LovelaceCardEditor extends HTMLElement {
+  hass?: HomeAssistant;
+  setConfig(config: EnergyFlowBuilderCardConfig): void;
+}
+
 export interface EnergyFlowNodeConfig {
   x: number;
   y: number;

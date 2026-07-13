@@ -71,7 +71,18 @@ type: custom:energy-flow-builder-card
 
 ### HACS
 
-HACS-Unterstuetzung ist vorbereitet, aber noch nicht final veroeffentlicht. Sobald Releases verfuegbar sind, kann dieses Repository als Custom Repository in HACS eingebunden werden.
+1. In HACS oben rechts auf die drei Punkte klicken und **Benutzerdefinierte Repositories** waehlen.
+2. `https://github.com/psiris22/ha-energy-flow-builder-card` einfuegen.
+3. Als Kategorie **Dashboard** waehlen und hinzufuegen.
+4. Die Card installieren und Home Assistant einmal neu laden.
+5. Unter **Einstellungen > Dashboards > Ressourcen** wird die Resource normalerweise automatisch angelegt. Falls nicht, fuege diese manuell hinzu:
+
+```yaml
+url: /hacsfiles/ha-energy-flow-builder-card/ha-energy-flow-builder-card.js
+type: module
+```
+
+Danach die Card ueber **Karte hinzufuegen** suchen. Der visuelle Editor zeigt alle lokalen Entities aus deinem Home Assistant in Auswahlfeldern an. HACS erkennt neue Commits als Update; Versions-Releases werden zusaetzlich als auswählbare stabile Versionen angeboten.
 
 ## Schnellstart
 
@@ -141,6 +152,12 @@ lines:
     pathNegative: "M900 1300 H600 V1100"
     entity: sensor.grid_power
 ```
+
+## Visueller Editor
+
+Du musst die Entity-IDs nicht von Hand schreiben. Im Lovelace-Karteneditor erscheinen unter **Anzeigen** Auswahlfelder fuer die primaere und optionale zweite Entity. Die Liste kommt direkt aus deiner laufenden Home-Assistant-Instanz und zeigt Friendly Name sowie Entity-ID. Solar, Haus, Batterie, Auto/Wallbox, Netz und Heizung sind nur vorbereitete Anzeigenamen und koennen umbenannt, verschoben, entfernt oder erweitert werden.
+
+Fuer sehr komplexe SVG-Pfade oder alle Detailoptionen kannst du jederzeit im Karteneditor auf den YAML-Modus wechseln.
 
 ## Eigene Entitaeten Verbinden
 
@@ -277,8 +294,10 @@ npm run build
 Der Produktionsbuild erzeugt:
 
 ```text
-dist/energy-flow-builder-card.js
+dist/ha-energy-flow-builder-card.js
 ```
+
+Ein Push startet die TypeScript- und HACS-Pruefung. Ein Git-Tag wie `v0.2.0` erstellt automatisch ein GitHub Release mit der fertigen JavaScript-Datei. Das ist der stabile Update-Kanal fuer HACS.
 
 ## Projektziel
 

@@ -5,6 +5,7 @@ import type {
   HassEntity,
   HomeAssistant
 } from "./types";
+import "./editor";
 
 const CARD_TAG = "energy-flow-builder-card";
 const DEFAULT_VIEW_BOX = "0 0 1000 1000";
@@ -44,6 +45,27 @@ class EnergyFlowBuilderCard extends HTMLElement {
 
   getCardSize(): number {
     return 5;
+  }
+
+  getConfigElement(): HTMLElement {
+    return document.createElement("energy-flow-builder-card-editor");
+  }
+
+  getStubConfig(): EnergyFlowBuilderCardConfig {
+    return {
+      type: `custom:${CARD_TAG}`,
+      title: "Energiefluss",
+      background: { color: "#dbeafe", viewBox: "0 0 1073 1466", aspectRatio: "1073 / 1466" },
+      nodes: {
+        solar: { x: 385, y: 330, name: "Solar" },
+        house: { x: 760, y: 520, name: "Haus" },
+        battery: { x: 385, y: 1124, name: "Batterie" },
+        wallbox: { x: 42, y: 1124, name: "Auto / Wallbox" },
+        grid: { x: 760, y: 1248, name: "Netz" },
+        heating: { x: 760, y: 900, name: "Heizung" }
+      },
+      lines: []
+    };
   }
 
   private render(): void {
