@@ -124,16 +124,25 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
     return `<details class="item" data-section="line:${index}" ${this.sectionOpen(`line:${index}`) ? "open" : ""}>
       <summary>${escapeHtml(line.id || `Linie ${index + 1}`)} <span>${escapeHtml(line.entity ?? "Keine Entity")}</span></summary>
       <div class="content">
-        <div class="row"><label>ID <input data-line="${index}" data-key="id" value="${attr(line.id)}"></label><label>Breite <input type="number" data-line="${index}" data-key="width" value="${line.width ?? ""}" placeholder="Standard"></label></div>
+        <label>ID <input data-line="${index}" data-key="id" value="${attr(line.id)}"></label>
         <label>Steuernde Entity ${this.lineEntitySelect(index, line.entity)}</label>
         <label class="check"><input type="checkbox" data-line="${index}" data-key="autoRoute" ${line.autoRoute ? "checked" : ""}> Automatisch zwischen zwei Anzeigen verbinden</label>
         <div class="row"><label>Von ${this.nodeSelect(index, "source", line.source, nodes)}</label><label>Nach ${this.nodeSelect(index, "target", line.target, nodes)}</label></div>
         <div class="row"><label>Startanschluss ${this.portSelect(index, "sourcePort", line.sourcePort)}</label><label>Zielanschluss ${this.portSelect(index, "targetPort", line.targetPort)}</label></div>
         ${line.autoRoute ? `<div class="file-note">Die Verbindung folgt den Boxen automatisch. Für einen eigenen Verlauf die automatische Verbindung ausschalten und Punkte bearbeiten.</div>` : `<label>SVG-Pfad <input data-line="${index}" data-key="path" value="${attr(line.path ?? "")}" placeholder="M600 500 V1100"></label>`}
         ${line.points?.length ? `<div class="file-note">${line.points.length} bearbeitbare Punkte: Punkte ziehen, Doppelklick auf die Linie für einen weiteren Punkt.</div>` : `<button class="secondary" type="button" data-action="make-points" data-index="${index}">Pfad mit Maus bearbeiten</button>`}
-        <div class="row"><label>Farbe <input data-line="${index}" data-key="color" value="${attr(line.color ?? "")}" placeholder="#16a6d9"></label><label>Strichmuster <input data-line="${index}" data-key="dashPattern" value="${attr(line.dashPattern ?? "")}" placeholder="26 190"></label></div>
-        <div class="row"><label>Schwelle <input type="number" data-line="${index}" data-key="activeAbove" value="${line.activeAbove ?? ""}" placeholder="Standard"></label><label>Animierte Punkte <input type="number" min="0" max="4" data-line="${index}" data-key="pulseCount" value="${line.pulseCount ?? ""}" placeholder="2"></label></div>
-        <label class="check"><input type="checkbox" data-line="${index}" data-key="invert" ${line.invert ? "checked" : ""}> Vorzeichen umdrehen</label>
+        <details class="subitem" data-section="line-design:${index}" ${this.sectionOpen(`line-design:${index}`) ? "open" : ""}>
+          <summary>Richtung und Design</summary>
+          <div class="row"><label>Richtung ${this.lineDirectionSelect(index, line.direction)}</label><label>Linienart ${this.lineStyleSelect(index, line.lineStyle)}</label></div>
+          <div class="row"><label>Breite <input type="number" min="1" data-line="${index}" data-key="width" value="${line.width ?? ""}" placeholder="Standard"></label><label>Tempo (Sekunden) <input type="number" min=".2" step=".1" data-line="${index}" data-key="duration" value="${line.duration ?? ""}" placeholder="Automatisch"></label></div>
+          <div class="row"><label>Linienfarbe <input data-line="${index}" data-key="color" value="${attr(line.color ?? "")}" placeholder="#16a6d9"></label><label>Hintergrundlinie <input data-line="${index}" data-key="trackColor" value="${attr(line.trackColor ?? "")}" placeholder="rgba(22, 166, 217, .26)"></label></div>
+          <div class="row"><label>Punktfarbe <input data-line="${index}" data-key="pulseColor" value="${attr(line.pulseColor ?? "")}" placeholder="#ffffff"></label><label>Animierte Punkte <input type="number" min="0" max="4" data-line="${index}" data-key="pulseCount" value="${line.pulseCount ?? ""}" placeholder="2"></label></div>
+          <div class="row"><label>Strichmuster <input data-line="${index}" data-key="dashPattern" value="${attr(line.dashPattern ?? "")}" placeholder="Je nach Linienart"></label><label>Deckkraft (0.1 - 1) <input type="number" min=".1" max="1" step=".1" data-line="${index}" data-key="opacity" value="${line.opacity ?? ""}" placeholder="1"></label></div>
+          <div class="row"><label>Aktiv ab <input type="number" data-line="${index}" data-key="activeAbove" value="${line.activeAbove ?? ""}" placeholder="Standard"></label><span></span></div>
+          <label class="check"><input type="checkbox" data-line="${index}" data-key="animate" ${line.animate !== false ? "checked" : ""}> Animation aktivieren</label>
+          <label class="check"><input type="checkbox" data-line="${index}" data-key="invert" ${line.invert ? "checked" : ""}> Vorzeichen umdrehen</label>
+          <label class="check"><input type="checkbox" data-line="${index}" data-key="hideWhenInactive" ${line.hideWhenInactive ? "checked" : ""}> Bei Inaktivität ausblenden</label>
+        </details>
         <div class="actions"><button class="secondary" type="button" data-action="duplicate-line" data-index="${index}">Duplizieren</button><button class="danger" type="button" data-action="remove-line" data-index="${index}">Linie entfernen</button></div>
       </div>
     </details>`;
@@ -156,6 +165,16 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
 
   private portSelect(index: number, key: string, current: string | undefined): string {
     return `<select data-line="${index}" data-key="${key}"><option value="" ${current ? "" : "selected"}>Box-Einstellung</option>${this.portOptions(current)}</select>`;
+  }
+
+  private lineDirectionSelect(index: number, current: string | undefined): string {
+    const value = current ?? "auto";
+    return `<select data-line="${index}" data-key="direction"><option value="auto" ${value === "auto" ? "selected" : ""}>Automatisch nach Vorzeichen</option><option value="forward" ${value === "forward" ? "selected" : ""}>Von Start zu Ziel</option><option value="reverse" ${value === "reverse" ? "selected" : ""}>Von Ziel zu Start</option></select>`;
+  }
+
+  private lineStyleSelect(index: number, current: string | undefined): string {
+    const value = current ?? "flow";
+    return `<select data-line="${index}" data-key="lineStyle"><option value="flow" ${value === "flow" ? "selected" : ""}>Fließend</option><option value="solid" ${value === "solid" ? "selected" : ""}>Durchgezogen</option><option value="dashed" ${value === "dashed" ? "selected" : ""}>Gestrichelt</option><option value="dotted" ${value === "dotted" ? "selected" : ""}>Gepunktet</option></select>`;
   }
 
   private nodePortSelect(id: string, current: string | undefined): string {
@@ -385,7 +404,7 @@ class EnergyFlowBuilderCardEditor extends HTMLElement {
   }
 }
 
-function numericKey(key: string): boolean { return ["x", "y", "decimals", "labelWidth", "labelHeight", "width", "activeAbove", "pulseCount"].includes(key); }
+function numericKey(key: string): boolean { return ["x", "y", "decimals", "labelWidth", "labelHeight", "width", "activeAbove", "pulseCount", "duration", "opacity"].includes(key); }
 function numberValue(value: number | undefined): string { return value === undefined ? "" : String(value); }
 function escapeHtml(value: string): string { return value.replace(/[&<>\"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '\"': "&quot;", "'": "&#39;" })[char] ?? char); }
 function attr(value: string): string { return escapeHtml(value); }

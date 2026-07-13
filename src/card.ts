@@ -134,16 +134,18 @@ class EnergyFlowBuilderCard extends HTMLElement {
     const color = line.color ?? defaults.lineColor;
     const trackColor = line.trackColor ?? defaults.trackColor;
     const pulseColor = line.pulseColor ?? defaults.pulseColor;
-    const dashPattern = line.dashPattern ? `--dash-pattern:${escapeAttr(line.dashPattern)};` : "";
+    const lineStyle = line.lineStyle ?? "flow";
+    const dashPattern = line.dashPattern ?? defaultDashPattern(lineStyle);
     const pulseCount = Math.max(0, Math.min(4, line.pulseCount ?? 2));
-    const direction = value < 0 ? "reverse" : "normal";
-    const opacity = active ? "1" : ".38";
+    const direction = line.direction === "forward" ? "normal" : line.direction === "reverse" ? "reverse" : value < 0 ? "reverse" : "normal";
+    const opacity = active ? String(Math.max(.1, Math.min(1, line.opacity ?? 1))) : ".38";
+    const animated = active && line.animate !== false;
 
     return `
-      <g class="flow-line ${active ? "is-active" : "is-idle"}" data-line-id="${escapeAttr(line.id)}" style="--line-width:${width};--duration:${duration}s;--direction:${direction};--flow-opacity:${opacity};--line-color:${escapeAttr(color)};--track-color:${escapeAttr(trackColor)};--pulse-color:${escapeAttr(pulseColor)};${dashPattern}">
+      <g class="flow-line style-${lineStyle} ${active ? "is-active" : "is-idle"} ${animated ? "is-animated" : "is-static"}" data-line-id="${escapeAttr(line.id)}" style="--line-width:${width};--duration:${duration}s;--direction:${direction};--flow-opacity:${opacity};--line-color:${escapeAttr(color)};--track-color:${escapeAttr(trackColor)};--pulse-color:${escapeAttr(pulseColor)};--dash-pattern:${escapeAttr(dashPattern)}">
         <path id="${id}" data-flow-path class="flow-track" d="${escapeAttr(path)}"></path>
         <path data-flow-path class="flow-main" d="${escapeAttr(path)}"></path>
-        ${active ? Array.from({ length: pulseCount }, (_, index) => `<circle class="flow-pulse ${index ? "secondary" : "primary"}" r="${Math.max(index ? 4 : 5, width * (index ? 1 : 1.3))}"><animateMotion dur="${duration}s" begin="${(duration / Math.max(1, pulseCount)) * index}s" repeatCount="indefinite" calcMode="paced"><mpath href="#${id}"></mpath></animateMotion></circle>`).join("") : ""}
+        ${animated ? Array.from({ length: pulseCount }, (_, index) => `<circle class="flow-pulse ${index ? "secondary" : "primary"}" r="${Math.max(index ? 4 : 5, width * (index ? 1 : 1.3))}"><animateMotion dur="${duration}s" begin="${(duration / Math.max(1, pulseCount)) * index}s" repeatCount="indefinite" calcMode="paced"><mpath href="#${id}"></mpath></animateMotion></circle>`).join("") : ""}
         ${showHandles ? (line.points ?? []).map((point, index) => `<circle class="line-handle" data-point-index="${index}" cx="${point.x}" cy="${point.y}" r="13"></circle>`).join("") : ""}
       </g>
     `;
@@ -418,9 +420,8 @@ const styles = `
     filter: url(#efb-glow);
   }
 
-  .flow-line.is-idle .flow-main {
+  .flow-line:not(.is-animated) .flow-main {
     animation: none;
-    stroke-dasharray: none;
   }
 
   .flow-pulse {
@@ -521,6 +522,13 @@ function speedFromValue(value: number, fallback: number): number {
 
 function pointsToPath(points: Array<{ x: number; y: number }>): string {
   return points.map((point, index) => `${index ? "L" : "M"}${point.x} ${point.y}`).join(" ");
+}
+
+function defaultDashPattern(style: NonNullable<EnergyFlowLineConfig["lineStyle"]>): string {
+  if (style === "solid") return "none";
+  if (style === "dashed") return "20 14";
+  if (style === "dotted") return "1 14";
+  return "26 190";
 }
 
 type Port = "top" | "right" | "bottom" | "left" | undefined;

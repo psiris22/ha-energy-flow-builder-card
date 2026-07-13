@@ -89,4 +89,9 @@ export interface EnergyFlowLineConfig {
   autoRoute?: boolean;
   dashPattern?: string;
   pulseCount?: number;
+  /** Direction along the path: automatic follows the entity sign. */
+  direction?: "auto" | "forward" | "reverse";
+  lineStyle?: "flow" | "solid" | "dashed" | "dotted";
+  animate?: boolean;
+  opacity?: number;
 }

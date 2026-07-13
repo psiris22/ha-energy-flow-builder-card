@@ -17,6 +17,7 @@ Die Card ist bewusst unabhaengig von bestimmten Herstellern. Es ist egal, ob dei
 - Linien anhand von Entity-Werten aktivieren
 - Import/Export oder Laden/Entladen ueber positive und negative Werte abbilden
 - Farben, Linienbreite, Animation und Schwellenwerte anpassen
+- Richtung, Linienart, Tempo, Deckkraft, Punkte und Inaktivitätsverhalten pro Linie gestalten
 - Raster/Snapping, Box-Styling, Vorlagen, Duplizieren sowie Rueckgaengig/Wiederholen nutzen
 - Konfiguration als JSON exportieren und wieder importieren
 
@@ -292,6 +293,10 @@ Nodes sind frei benannt. `solar`, `battery` oder `grid` sind keine Pflichtnamen.
 | `pulseColor` | Farbe der animierten Punkte. |
 | `duration` | Animationsdauer in Sekunden. |
 | `hideWhenInactive` | Linie unterhalb der Schwelle ausblenden. |
+| `direction` | `auto` folgt dem Entity-Vorzeichen, `forward` läuft von Start zu Ziel, `reverse` umgekehrt. |
+| `lineStyle` | `flow`, `solid`, `dashed` oder `dotted`. |
+| `animate` | Animation der Linie und Punkte aktivieren oder deaktivieren. |
+| `opacity` | Deckkraft einer aktiven Linie von `0.1` bis `1`. |
 | `source`, `target` | IDs der Start- und Zielanzeige fuer eine automatische Verbindung. |
 | `sourcePort`, `targetPort` | Optionaler Anschluss-Override fuer diese Linie. Wenn leer, gilt die Einstellung der jeweiligen Box. |
 | `autoRoute` | Linie automatisch zwischen Quelle und Ziel verlegen. |
